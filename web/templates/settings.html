@@ -1,0 +1,285 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Settings{% endblock %}
+
+{% block content %}
+<div class="settings-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Settings</h1>
+        <p class="lead">Manage your account settings and preferences.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="list-group settings-nav mb-4">
+          <a href="#account" class="list-group-item list-group-item-action active" data-bs-toggle="list">Account Settings</a>
+          <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Notifications</a>
+          <a href="#privacy" class="list-group-item list-group-item-action" data-bs-toggle="list">Privacy</a>
+          <a href="#data" class="list-group-item list-group-item-action" data-bs-toggle="list">Data Management</a>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <div class="tab-content">
+          <!-- Account Settings -->
+          <div class="tab-pane fade show active" id="account">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="mb-0">Account Settings</h3>
+              </div>
+              <div class="card-body">
+                <form id="accountSettingsForm">
+                  <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" value="John Smith">
+                  </div>
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" value="john.smith@example.com">
+                  </div>
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••">
+                    <div class="form-text">Leave blank to keep your current password.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Notifications -->
+          <div class="tab-pane fade" id="notifications">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="mb-0">Notification Preferences</h3>
+              </div>
+              <div class="card-body">
+                <form id="notificationSettingsForm">
+                  <div class="mb-3">
+                    <h5>Email Notifications</h5>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="emailRecommendations" checked>
+                      <label class="form-check-label" for="emailRecommendations">New college recommendations</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="emailJournalReminders" checked>
+                      <label class="form-check-label" for="emailJournalReminders">Journal entry reminders</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="emailReports" checked>
+                      <label class="form-check-label" for="emailReports">New reports available</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="emailNewsletters">
+                      <label class="form-check-label" for="emailNewsletters">Educational newsletters</label>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <h5>In-App Notifications</h5>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="appRecommendations" checked>
+                      <label class="form-check-label" for="appRecommendations">New college recommendations</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="appJournalReminders" checked>
+                      <label class="form-check-label" for="appJournalReminders">Journal entry reminders</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="appEmotionalInsights" checked>
+                      <label class="form-check-label" for="appEmotionalInsights">Emotional state insights</label>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <h5>Frequency</h5>
+                    <select class="form-select" id="notificationFrequency">
+                      <option value="immediate">Immediate</option>
+                      <option value="daily" selected>Daily Digest</option>
+                      <option value="weekly">Weekly Summary</option>
+                    </select>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary">Save Preferences</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Privacy -->
+          <div class="tab-pane fade" id="privacy">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="mb-0">Privacy Settings</h3>
+              </div>
+              <div class="card-body">
+                <form id="privacySettingsForm">
+                  <div class="mb-3">
+                    <h5>Data Usage</h5>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="emotionalAnalysis" checked>
+                      <label class="form-check-label" for="emotionalAnalysis">Allow emotional state analysis of journal entries</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="anonymousResearch" checked>
+                      <label class="form-check-label" for="anonymousResearch">Allow anonymous data usage for research</label>
+                      <div class="form-text">Your data will be anonymized and used to improve our recommendation algorithms.</div>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <h5>Profile Visibility</h5>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="counselorAccess" checked>
+                      <label class="form-check-label" for="counselorAccess">Allow counselors to view your profile</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" id="journalAccess">
+                      <label class="form-check-label" for="journalAccess">Allow counselors to view your journal entries</label>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Data Management -->
+          <div class="tab-pane fade" id="data">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="mb-0">Data Management</h3>
+              </div>
+              <div class="card-body">
+                <div class="mb-4">
+                  <h5>Export Your Data</h5>
+                  <p>Download all your data in a portable format.</p>
+                  <button class="btn btn-outline-primary" id="exportDataBtn">
+                    <i class="fas fa-download me-1"></i> Export Data
+                  </button>
+                </div>
+                
+                <div class="mb-4">
+                  <h5>Delete Journal Entries</h5>
+                  <p>Delete all your journal entries. This action cannot be undone.</p>
+                  <button class="btn btn-outline-warning" id="deleteJournalBtn">
+                    <i class="fas fa-trash-alt me-1"></i> Delete Journal Entries
+                  </button>
+                </div>
+                
+                <div class="mb-4">
+                  <h5>Delete Account</h5>
+                  <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                  <button class="btn btn-danger" id="deleteAccountBtn">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Delete Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmMessage">Are you sure you want to proceed with this action? This cannot be undone.</p>
+        <div class="mb-3">
+          <label for="deleteConfirmInput" class="form-label">Type "DELETE" to confirm</label>
+          <input type="text" class="form-control" id="deleteConfirmInput">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submissions
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // In a real app, this would be an API call
+        console.log('Form submitted:', form.id);
+        
+        // Show success message
+        alert('Settings saved successfully!');
+      });
+    });
+    
+    // Handle delete buttons
+    const deleteJournalBtn = document.getElementById('deleteJournalBtn');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const deleteConfirmInput = document.getElementById('deleteConfirmInput');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteConfirmMessage = document.getElementById('deleteConfirmMessage');
+    
+    deleteJournalBtn.addEventListener('click', function() {
+      deleteConfirmMessage.textContent = 'Are you sure you want to delete all your journal entries? This action cannot be undone.';
+      deleteConfirmModal.show();
+    });
+    
+    deleteAccountBtn.addEventListener('click', function() {
+      deleteConfirmMessage.textContent = 'Are you sure you want to delete your account and all associated data? This action cannot be undone.';
+      deleteConfirmModal.show();
+    });
+    
+    // Enable/disable confirm button based on input
+    deleteConfirmInput.addEventListener('input', function() {
+      confirmDeleteBtn.disabled = this.value !== 'DELETE';
+    });
+    
+    // Handle confirm delete button
+    confirmDeleteBtn.addEventListener('click', function() {
+      // In a real app, this would be an API call
+      console.log('Deletion confirmed');
+      
+      // Close modal
+      deleteConfirmModal.hide();
+      
+      // Reset input
+      deleteConfirmInput.value = '';
+      confirmDeleteBtn.disabled = true;
+      
+      // Show success message
+      alert('Deletion completed successfully!');
+    });
+    
+    // Handle export data button
+    const exportDataBtn = document.getElementById('exportDataBtn');
+    exportDataBtn.addEventListener('click', function() {
+      // In a real app, this would trigger a download
+      console.log('Exporting data');
+      
+      // Show success message
+      alert('Your data export has been prepared. The download will begin shortly.');
+    });
+  });
+</script>
+{% endblock %}

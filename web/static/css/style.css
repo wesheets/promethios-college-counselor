@@ -1,0 +1,308 @@
+/* Main styles for College Counselor */
+
+/* Global styles */
+:root {
+  --primary-color: #3f51b5;
+  --secondary-color: #ff4081;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --danger-color: #f44336;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --gray-color: #6c757d;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Header and navigation */
+.navbar-brand img {
+  margin-right: 10px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: #fff;
+}
+
+/* Page sections */
+.page-title {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.section-title {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Hero section */
+.hero-section {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 4rem 0;
+  margin-bottom: 2rem;
+}
+
+.hero-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.hero-section .lead {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.cta-buttons {
+  margin-top: 2rem;
+}
+
+/* Feature cards */
+.features-section {
+  padding: 3rem 0;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+/* Trust section */
+.trust-section {
+  background-color: var(--light-color);
+  padding: 3rem 0;
+}
+
+.trust-info ul {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.trust-visual img {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Emotion section */
+.emotion-section {
+  padding: 3rem 0;
+}
+
+.emotion-visual img {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Override section */
+.override-section {
+  background-color: var(--light-color);
+  padding: 3rem 0;
+}
+
+.override-example {
+  margin-top: 2rem;
+}
+
+/* CTA section */
+.cta-section {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.cta-section h2 {
+  margin-bottom: 1rem;
+}
+
+.cta-section p {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* Profile page */
+.profile-section {
+  padding: 2rem 0;
+}
+
+/* Journal page */
+.journal-section {
+  padding: 2rem 0;
+}
+
+.journal-entry {
+  transition: transform 0.2s;
+}
+
+.journal-entry:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.emotion-indicator {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+}
+
+.emotion-icon {
+  font-size: 40px;
+  color: var(--success-color);
+}
+
+/* Colleges page */
+.colleges-section {
+  padding: 2rem 0;
+}
+
+.trust-score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+.high-score {
+  background-color: var(--success-color);
+}
+
+.medium-score {
+  background-color: var(--primary-color);
+}
+
+.low-score {
+  background-color: var(--danger-color);
+}
+
+/* Report page */
+.report-section {
+  padding: 2rem 0;
+}
+
+/* Timeline styles */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15px;
+  height: 100%;
+  width: 2px;
+  background-color: #dee2e6;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -30px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  top: 5px;
+}
+
+.timeline-content {
+  padding-bottom: 10px;
+}
+
+.timeline-title {
+  margin-bottom: 5px;
+}
+
+.timeline-date {
+  color: var(--gray-color);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+/* Settings page */
+.settings-section {
+  padding: 2rem 0;
+}
+
+/* Footer */
+.footer {
+  margin-top: 3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 0;
+  }
+  
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .trust-visual, .emotion-visual {
+    margin-top: 1.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar, .footer, .no-print {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #dee2e6 !important;
+    break-inside: avoid;
+  }
+  
+  .page-title {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+}

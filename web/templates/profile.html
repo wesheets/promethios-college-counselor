@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Profile{% endblock %}
+
+{% block content %}
+<div class="profile-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Student Profile</h1>
+        <p class="lead">Tell us about yourself so we can provide personalized college recommendations.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <form id="profileForm" class="needs-validation" novalidate>
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <h3>Personal Information</h3>
+              <hr>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback">
+                  Please provide your name.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+                <div class="invalid-feedback">
+                  Please provide a valid email address.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <h3>Academic Information</h3>
+              <hr>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="gpa" class="form-label">Current GPA</label>
+                <input type="number" class="form-control" id="gpa" name="gpa" min="0" max="4.0" step="0.1" required>
+                <div class="invalid-feedback">
+                  Please provide your GPA (0.0 - 4.0).
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="graduation-year" class="form-label">Expected Graduation Year</label>
+                <select class="form-select" id="graduation-year" name="graduation_year" required>
+                  <option value="" selected disabled>Select year</option>
+                  <option value="2025">2025</option>
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please select your expected graduation year.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="mb-3">
+                <label for="intended-majors" class="form-label">Intended Majors</label>
+                <select class="form-select" id="intended-majors" name="intended_majors" multiple required>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Business">Business</option>
+                  <option value="Biology">Biology</option>
+                  <option value="Psychology">Psychology</option>
+                  <option value="English">English</option>
+                  <option value="History">History</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Economics">Economics</option>
+                  <option value="Political Science">Political Science</option>
+                  <option value="Sociology">Sociology</option>
+                  <option value="Art">Art</option>
+                  <option value="Music">Music</option>
+                </select>
+                <div class="form-text">Hold Ctrl (or Cmd) to select multiple majors.</div>
+                <div class="invalid-feedback">
+                  Please select at least one intended major.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <h3>College Preferences</h3>
+              <hr>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="location-preference" class="form-label">Location Preference</label>
+                <select class="form-select" id="location-preference" name="location_preference">
+                  <option value="" selected disabled>Select location</option>
+                  <option value="northeast">Northeast</option>
+                  <option value="midwest">Midwest</option>
+                  <option value="south">South</option>
+                  <option value="west">West</option>
+                  <option value="CA">California</option>
+                  <option value="NY">New York</option>
+                  <option value="TX">Texas</option>
+                  <option value="FL">Florida</option>
+                  <option value="MA">Massachusetts</option>
+                  <option value="IL">Illinois</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="size-preference" class="form-label">School Size Preference</label>
+                <select class="form-select" id="size-preference" name="size_preference">
+                  <option value="" selected disabled>Select size</option>
+                  <option value="small">Small (< 5,000 students)</option>
+                  <option value="medium">Medium (5,000 - 15,000 students)</option>
+                  <option value="large">Large (> 15,000 students)</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="setting-preference" class="form-label">Campus Setting Preference</label>
+                <select class="form-select" id="setting-preference" name="setting_preference">
+                  <option value="" selected disabled>Select setting</option>
+                  <option value="urban">Urban</option>
+                  <option value="suburban">Suburban</option>
+                  <option value="rural">Rural</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="budget" class="form-label">Annual Budget (USD)</label>
+                <input type="number" class="form-control" id="budget" name="budget" min="0" step="1000">
+                <div class="form-text">Maximum amount you can spend per year on college.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-primary btn-lg">Save Profile</button>
+              <button type="button" class="btn btn-outline-secondary btn-lg ms-2">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Form validation
+  (function() {
+    'use strict';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('profileForm');
+      
+      form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          event.preventDefault();
+          saveProfile();
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+    
+    function saveProfile() {
+      const formData = new FormData(document.getElementById('profileForm'));
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        if (key === 'intended_majors') {
+          if (!data[key]) {
+            data[key] = [];
+          }
+          data[key].push(value);
+        } else {
+          data[key] = value;
+        }
+      }
+      
+      // Convert budget to number
+      if (data.budget) {
+        data.budget = parseFloat(data.budget);
+      }
+      
+      // Convert GPA to number
+      if (data.gpa) {
+        data.gpa = parseFloat(data.gpa);
+      }
+      
+      // API call would go here
+      console.log('Saving profile:', data);
+      
+      // For demo purposes, show success message
+      alert('Profile saved successfully!');
+      
+      // Redirect to journal page
+      window.location.href = '/journal';
+    }
+  })();
+</script>
+{% endblock %}

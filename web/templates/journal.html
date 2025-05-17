@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Journal{% endblock %}
+
+{% block content %}
+<div class="journal-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Journal</h1>
+        <p class="lead">Express your thoughts, goals, and concerns about the college application process. Your emotional state helps us provide better recommendations.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h3>New Journal Entry</h3>
+            <form id="journalForm">
+              <div class="mb-3">
+                <label for="journalEntry" class="form-label">What's on your mind today?</label>
+                <textarea class="form-control" id="journalEntry" rows="5" placeholder="Share your thoughts, feelings, or questions about college applications..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Entry</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Previous Entries</h3>
+        <div id="journalEntries">
+          <!-- Entries will be loaded here -->
+          <div class="journal-entry-placeholder">
+            <p class="text-center text-muted">Your journal entries will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card bg-light">
+          <div class="card-body">
+            <h4>Emotional State Analysis</h4>
+            <p>Our system analyzes your journal entries to understand your emotional state. This helps us provide recommendations when you're in the right frame of mind for decision-making.</p>
+            
+            <div id="emotionalStateCard" class="d-none">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h5>Current Emotional State</h5>
+                      <div id="emotionIndicator" class="emotion-indicator">
+                        <i class="fas fa-smile emotion-icon"></i>
+                      </div>
+                      <p id="emotionLabel" class="mt-2">Balanced</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Analysis</h5>
+                      <div class="row">
+                        <div class="col-md-4">
+                          <label>Sentiment:</label>
+                          <div class="progress">
+                            <div id="sentimentProgress" class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">70%</div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label>Certainty:</label>
+                          <div class="progress">
+                            <div id="certaintyProgress" class="progress-bar bg-info" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <label>Calmness:</label>
+                          <div class="progress">
+                            <div id="calmnessProgress" class="progress-bar bg-primary" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">80%</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mt-3">
+                        <p id="emotionSummary">Your emotional state appears balanced for decision-making.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Journal Entry Template (hidden) -->
+<template id="journalEntryTemplate">
+  <div class="card mb-3 journal-entry">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="entry-date"></span>
+      <span class="entry-emotion-badge"></span>
+    </div>
+    <div class="card-body">
+      <p class="entry-text"></p>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sample journal entries for demo
+    const sampleEntries = [
+      {
+        id: 3,
+        text: "I'm feeling much more confident about my college choices now. After researching more about the programs at different schools, I think I have a better sense of where I'd fit in best. Still a bit nervous about the application process, but excited for what's ahead!",
+        timestamp: "2025-05-15T14:30:00Z",
+        emotional_state: {
+          sentiment_score: 85,
+          uncertainty_score: 70,
+          agitation_score: 75,
+          summary: "Your emotional state appears balanced for decision-making."
+        }
+      },
+      {
+        id: 2,
+        text: "I'm worried about my GPA not being high enough for the colleges I want to apply to. Everyone else seems to have perfect grades and tons of extracurriculars. What if I don't get accepted anywhere good?",
+        timestamp: "2025-05-10T09:15:00Z",
+        emotional_state: {
+          sentiment_score: 30,
+          uncertainty_score: 25,
+          agitation_score: 40,
+          summary: "Your journal entry reflects anxiety and uncertainty. Consider exploring these feelings further before making decisions."
+        }
+      },
+      {
+        id: 1,
+        text: "Started researching colleges today. There are so many options! I'm excited about the possibilities but also feeling a bit overwhelmed by all the choices. Need to narrow down my list based on my interests in computer science and maybe psychology.",
+        timestamp: "2025-05-05T16:45:00Z",
+        emotional_state: {
+          sentiment_score: 65,
+          uncertainty_score: 45,
+          agitation_score: 60,
+          summary: "Your emotional state shows excitement mixed with some uncertainty, which is normal during the exploration phase."
+        }
+      }
+    ];
+
+    // Load sample entries
+    loadJournalEntries(sampleEntries);
+    updateEmotionalState(sampleEntries[0].emotional_state);
+
+    // Handle form submission
+    const journalForm = document.getElementById('journalForm');
+    journalForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const journalText = document.getElementById('journalEntry').value;
+      if (!journalText.trim()) return;
+      
+      // In a real app, this would be an API call
+      saveJournalEntry(journalText);
+      
+      // Clear the form
+      journalForm.reset();
+    });
+  });
+
+  function loadJournalEntries(entries) {
+    const entriesContainer = document.getElementById('journalEntries');
+    const template = document.getElementById('journalEntryTemplate');
+    
+    // Clear placeholder if entries exist
+    if (entries.length > 0) {
+      entriesContainer.innerHTML = '';
+    }
+    
+    // Add entries in reverse chronological order
+    entries.forEach(entry => {
+      const clone = template.content.cloneNode(true);
+      
+      // Format date
+      const date = new Date(entry.timestamp);
+      const formattedDate = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      clone.querySelector('.entry-date').textContent = formattedDate;
+      clone.querySelector('.entry-text').textContent = entry.text;
+      
+      // Add emotion badge
+      const emotionBadge = clone.querySelector('.entry-emotion-badge');
+      if (entry.emotional_state) {
+        const sentiment = entry.emotional_state.sentiment_score;
+        let badgeClass = 'bg-secondary';
+        let badgeText = 'Neutral';
+        
+        if (sentiment >= 70) {
+          badgeClass = 'bg-success';
+          badgeText = 'Positive';
+        } else if (sentiment <= 30) {
+          badgeClass = 'bg-danger';
+          badgeText = 'Negative';
+        } else if (sentiment > 50) {
+          badgeClass = 'bg-info';
+          badgeText = 'Slightly Positive';
+        } else if (sentiment < 50) {
+          badgeClass = 'bg-warning text-dark';
+          badgeText = 'Slightly Negative';
+        }
+        
+        emotionBadge.classList.add('badge', badgeClass);
+        emotionBadge.textContent = badgeText;
+      }
+      
+      entriesContainer.appendChild(clone);
+    });
+  }
+
+  function updateEmotionalState(emotionalState) {
+    if (!emotionalState) return;
+    
+    const emotionalStateCard = document.getElementById('emotionalStateCard');
+    emotionalStateCard.classList.remove('d-none');
+    
+    // Update progress bars
+    document.getElementById('sentimentProgress').style.width = `${emotionalState.sentiment_score}%`;
+    document.getElementById('sentimentProgress').textContent = `${emotionalState.sentiment_score}%`;
+    
+    document.getElementById('certaintyProgress').style.width = `${emotionalState.uncertainty_score}%`;
+    document.getElementById('certaintyProgress').textContent = `${emotionalState.uncertainty_score}%`;
+    
+    document.getElementById('calmnessProgress').style.width = `${emotionalState.agitation_score}%`;
+    document.getElementById('calmnessProgress').textContent = `${emotionalState.agitation_score}%`;
+    
+    // Update summary
+    document.getElementById('emotionSummary').textContent = emotionalState.summary;
+    
+    // Update emotion indicator
+    const emotionIndicator = document.getElementById('emotionIndicator');
+    const emotionLabel = document.getElementById('emotionLabel');
+    const emotionIcon = emotionIndicator.querySelector('.emotion-icon');
+    
+    // Reset classes
+    emotionIcon.className = 'fas emotion-icon';
+    
+    // Set appropriate emotion icon and label
+    const avgScore = (emotionalState.sentiment_score + emotionalState.uncertainty_score + emotionalState.agitation_score) / 3;
+    
+    if (avgScore >= 70) {
+      emotionIcon.classList.add('fa-smile');
+      emotionLabel.textContent = 'Positive';
+    } else if (avgScore <= 30) {
+      emotionIcon.classList.add('fa-frown');
+      emotionLabel.textContent = 'Negative';
+    } else if (avgScore > 50) {
+      emotionIcon.classList.add('fa-smile-beam');
+      emotionLabel.textContent = 'Slightly Positive';
+    } else if (avgScore < 50) {
+      emotionIcon.classList.add('fa-meh');
+      emotionLabel.textContent = 'Slightly Negative';
+    } else {
+      emotionIcon.classList.add('fa-meh-blank');
+      emotionLabel.textContent = 'Neutral';
+    }
+  }
+
+  function saveJournalEntry(text) {
+    // In a real app, this would be an API call
+    console.log('Saving journal entry:', text);
+    
+    // For demo purposes, create a new entry with mock data
+    const newEntry = {
+      id: Date.now(),
+      text: text,
+      timestamp: new Date().toISOString(),
+      emotional_state: {
+        sentiment_score: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
+        uncertainty_score: Math.floor(Math.random() * 40) + 60,
+        agitation_score: Math.floor(Math.random() * 40) + 60,
+        summary: "Your emotional state appears balanced for decision-making."
+      }
+    };
+    
+    // Add to the beginning of the list
+    loadJournalEntries([newEntry, ...document.querySelectorAll('.journal-entry')]);
+    updateEmotionalState(newEntry.emotional_state);
+    
+    // Show success message
+    alert('Journal entry saved successfully!');
+  }
+</script>
+{% endblock %}

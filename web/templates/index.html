@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+  <div class="container">
+    <h1>Welcome to Promethios College Counselor</h1>
+    <p class="lead">An emotion-aware college counseling system with transparent trust scores and comprehensive reporting.</p>
+    <div class="cta-buttons">
+      <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">Create Profile</a>
+      <a href="{{ url_for('journal') }}" class="btn btn-secondary btn-lg">Start Journaling</a>
+    </div>
+  </div>
+</div>
+
+<div class="features-section">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-user-edit"></i>
+          </div>
+          <h3>Create Your Profile</h3>
+          <p>Tell us about your academic background, interests, and college preferences.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-book-open"></i>
+          </div>
+          <h3>Journal Your Thoughts</h3>
+          <p>Express your goals, concerns, and feelings about the college application process.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-university"></i>
+          </div>
+          <h3>Get Recommendations</h3>
+          <p>Receive personalized college recommendations with transparent trust scores.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="trust-section">
+  <div class="container">
+    <h2 class="section-title">Trust-Based Recommendations</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="trust-info">
+          <h3>What are Trust Scores?</h3>
+          <p>Our recommendations come with transparent trust scores that show you exactly why a college is recommended for you. Each score is based on multiple factors:</p>
+          <ul>
+            <li>Academic Profile Match</li>
+            <li>Emotional Readiness</li>
+            <li>College Fit</li>
+            <li>Budget Alignment</li>
+          </ul>
+          <p>You can see the breakdown of each factor and understand the reasoning behind every recommendation.</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="trust-visual">
+          <img src="{{ url_for('static', filename='img/trust-score-example.png') }}" alt="Trust Score Example" class="img-fluid">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="emotion-section">
+  <div class="container">
+    <h2 class="section-title">Emotion-Aware Counseling</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="emotion-visual">
+          <img src="{{ url_for('static', filename='img/emotion-aware.png') }}" alt="Emotion-Aware Counseling" class="img-fluid">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="emotion-info">
+          <h3>Why Emotions Matter</h3>
+          <p>College decisions shouldn't be made in moments of high stress or anxiety. Our system monitors your emotional state through your journal entries and helps you make decisions when you're in the right frame of mind.</p>
+          <p>If we detect high levels of stress or anxiety, we'll suggest taking a break before making important decisions.</p>
+          <p>Your emotional well-being is just as important as finding the right academic fit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="override-section">
+  <div class="container">
+    <h2 class="section-title">Override System</h2>
+    <p class="section-description">Disagree with a recommendation? Our override system allows you to adjust recommendations with proper justification, maintaining transparency throughout the process.</p>
+    <div class="override-example">
+      <div class="card">
+        <div class="card-header">
+          <h3>Override Example</h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h4>Original Recommendation</h4>
+              <p><strong>State University</strong> - Trust Score: 75</p>
+              <p><small>Based on academic profile, budget, and location preferences</small></p>
+            </div>
+            <div class="col-md-6">
+              <h4>After Override</h4>
+              <p><strong>State University</strong> - Trust Score: 85 <span class="badge bg-info">Overridden</span></p>
+              <p><small>Justification: "They have a special program in my field of interest that wasn't captured in the data."</small></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section">
+  <div class="container">
+    <h2>Ready to find your perfect college match?</h2>
+    <p>Start your journey with Promethios College Counselor today.</p>
+    <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">Get Started</a>
+  </div>
+</div>
+{% endblock %}
