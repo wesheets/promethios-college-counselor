@@ -1,0 +1,30 @@
+services:
+  # API Service
+  - type: web
+    name: promethios-compliance-api
+    env: python
+    buildCommand: pip install -r api/requirements.txt
+    startCommand: cd api && gunicorn promethios_api:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: WEB_URL
+        fromService:
+          name: promethios-compliance-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # Web UI Service
+  - type: web
+    name: promethios-compliance-web
+    env: python
+    buildCommand: pip install -r web/requirements.txt
+    startCommand: cd web && gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: API_URL
+        fromService:
+          name: promethios-compliance-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
