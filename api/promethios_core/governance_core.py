@@ -456,16 +456,34 @@ class GovernanceCore:
     def _load_schemas(self):
         """Load JSON schemas for validation."""
         try:
-            with open(EMOTION_TELEMETRY_SCHEMA, 'r') as f:
-                self.emotion_telemetry_schema = json.load(f)
+            # Handle emotion telemetry schema
+            if isinstance(EMOTION_TELEMETRY_SCHEMA, dict):
+                # Use embedded schema directly
+                self.emotion_telemetry_schema = EMOTION_TELEMETRY_SCHEMA
+            else:
+                # Load from file path
+                with open(EMOTION_TELEMETRY_SCHEMA, 'r') as f:
+                    self.emotion_telemetry_schema = json.load(f)
             
-            with open(JUSTIFICATION_LOG_SCHEMA, 'r') as f:
-                self.justification_log_schema = json.load(f)
+            # Handle justification log schema
+            if isinstance(JUSTIFICATION_LOG_SCHEMA, dict):
+                # Use embedded schema directly
+                self.justification_log_schema = JUSTIFICATION_LOG_SCHEMA
+            else:
+                # Load from file path
+                with open(JUSTIFICATION_LOG_SCHEMA, 'r') as f:
+                    self.justification_log_schema = json.load(f)
             
-            with open(OPERATOR_OVERRIDE_SCHEMA, 'r') as f:
-                self.operator_override_schema = json.load(f)
+            # Handle operator override schema
+            if isinstance(OPERATOR_OVERRIDE_SCHEMA, dict):
+                # Use embedded schema directly
+                self.operator_override_schema = OPERATOR_OVERRIDE_SCHEMA
+            else:
+                # Load from file path
+                with open(OPERATOR_OVERRIDE_SCHEMA, 'r') as f:
+                    self.operator_override_schema = json.load(f)
             
-            print(f"Schemas loaded successfully from {SCHEMA_DIR}")
+            print("Schemas loaded successfully (either from files or embedded content)")
         except FileNotFoundError as e:
             print(f"CRITICAL: Schema file not found: {e}")
             raise
