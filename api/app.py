@@ -29,11 +29,11 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 
-# Initialize counseling wrapper
-counseling_wrapper = CounselingWrapper()
-
 # Initialize data source manager
 data_source_manager = DataSourceManager()
+
+# Initialize counseling wrapper with data source manager
+counseling_wrapper = CounselingWrapper(data_source_manager)
 
 # In-memory storage for demo
 students = {
