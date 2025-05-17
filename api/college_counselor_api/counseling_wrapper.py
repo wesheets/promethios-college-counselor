@@ -7,7 +7,12 @@ emotional state analysis, and recommendation generation.
 
 import json
 import datetime
-from ..promethios_core.governance_core import GovernanceCore
+import sys
+import os
+
+# Add the parent directory to the path to ensure imports work correctly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from promethios_core.governance_core import GovernanceCore
 
 class BaseTrustFactor:
     """Base class for all trust factors."""
