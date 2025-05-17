@@ -24,15 +24,328 @@ os.makedirs(LOG_DIR, exist_ok=True)
 EMOTION_TELEMETRY_LOG = os.path.join(LOG_DIR, "emotion_telemetry.log.jsonl")
 JUSTIFICATION_LOG = os.path.join(LOG_DIR, "justification.log.jsonl")
 
-# Function to find schema files using multiple search strategies
+# Embedded schema content as fallback
+EMBEDDED_SCHEMAS = {
+    "mgc_emotion_telemetry.schema.json": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Emotion Telemetry Schema",
+        "description": "Schema for emotion telemetry data in the Promethios system",
+        "type": "object",
+        "required": ["timestamp", "user_id", "emotion_data"],
+        "properties": {
+            "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of when the emotion data was recorded"
+            },
+            "user_id": {
+                "type": "string",
+                "description": "Unique identifier for the user"
+            },
+            "session_id": {
+                "type": "string",
+                "description": "Unique identifier for the session"
+            },
+            "emotion_data": {
+                "type": "object",
+                "required": ["primary_emotion", "confidence"],
+                "properties": {
+                    "primary_emotion": {
+                        "type": "string",
+                        "enum": ["joy", "sadness", "anger", "fear", "disgust", "surprise", "neutral", "anxiety", "confusion", "uncertainty"],
+                        "description": "Primary detected emotion"
+                    },
+                    "secondary_emotion": {
+                        "type": "string",
+                        "description": "Secondary detected emotion"
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Confidence score for the primary emotion detection"
+                    },
+                    "intensity": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Intensity of the primary emotion"
+                    },
+                    "raw_scores": {
+                        "type": "object",
+                        "description": "Raw scores for all emotion categories",
+                        "additionalProperties": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    }
+                }
+            },
+            "source": {
+                "type": "string",
+                "description": "Source of the emotion data (e.g., 'text', 'voice', 'facial')"
+            },
+            "context": {
+                "type": "object",
+                "description": "Contextual information about the emotion data",
+                "properties": {
+                    "activity": {
+                        "type": "string",
+                        "description": "Activity the user was engaged in"
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Location where the emotion was detected"
+                    },
+                    "preceding_events": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Events preceding the emotion detection"
+                    }
+                }
+            },
+            "metadata": {
+                "type": "object",
+                "description": "Additional metadata",
+                "additionalProperties": True
+            }
+        },
+        "additionalProperties": False
+    },
+    "loop_justification_log.schema.v1.json": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Loop Justification Log Schema",
+        "description": "Schema for loop justification log entries in the Promethios system",
+        "type": "object",
+        "required": ["timestamp", "user_id", "justification_id", "decision_type", "justification_text"],
+        "properties": {
+            "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of when the justification was recorded"
+            },
+            "user_id": {
+                "type": "string",
+                "description": "Unique identifier for the user providing the justification"
+            },
+            "session_id": {
+                "type": "string",
+                "description": "Unique identifier for the session"
+            },
+            "justification_id": {
+                "type": "string",
+                "description": "Unique identifier for this justification entry"
+            },
+            "decision_type": {
+                "type": "string",
+                "enum": ["override", "exception", "manual_review", "approval", "rejection"],
+                "description": "Type of decision being justified"
+            },
+            "decision_context": {
+                "type": "object",
+                "description": "Context information about the decision",
+                "properties": {
+                    "entity_id": {
+                        "type": "string",
+                        "description": "ID of the entity being affected (e.g., college ID)"
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "description": "Type of entity being affected (e.g., 'college', 'recommendation')"
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "Action being taken (e.g., 'include', 'exclude')"
+                    },
+                    "original_score": {
+                        "type": "number",
+                        "description": "Original trust score before override"
+                    },
+                    "modified_score": {
+                        "type": "number",
+                        "description": "Modified trust score after override"
+                    }
+                }
+            },
+            "justification_text": {
+                "type": "string",
+                "description": "Textual justification for the decision"
+            },
+            "justification_factors": {
+                "type": "array",
+                "description": "Factors considered in the justification",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "factor_name": {
+                            "type": "string",
+                            "description": "Name of the factor"
+                        },
+                        "factor_weight": {
+                            "type": "number",
+                            "description": "Weight assigned to this factor"
+                        },
+                        "factor_description": {
+                            "type": "string",
+                            "description": "Description of how this factor influenced the decision"
+                        }
+                    }
+                }
+            },
+            "approval_chain": {
+                "type": "array",
+                "description": "Chain of approvals if applicable",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "approver_id": {
+                            "type": "string",
+                            "description": "ID of the approver"
+                        },
+                        "approval_timestamp": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "When the approval was granted"
+                        },
+                        "approval_notes": {
+                            "type": "string",
+                            "description": "Notes provided by the approver"
+                        }
+                    }
+                }
+            },
+            "metadata": {
+                "type": "object",
+                "description": "Additional metadata",
+                "additionalProperties": True
+            }
+        },
+        "additionalProperties": False
+    },
+    "operator_override.schema.v1.json": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Operator Override Schema",
+        "description": "Schema for operator override entries in the Promethios system",
+        "type": "object",
+        "required": ["timestamp", "operator_id", "override_id", "entity_type", "entity_id", "action", "justification"],
+        "properties": {
+            "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of when the override was recorded"
+            },
+            "operator_id": {
+                "type": "string",
+                "description": "Unique identifier for the operator performing the override"
+            },
+            "session_id": {
+                "type": "string",
+                "description": "Unique identifier for the session"
+            },
+            "override_id": {
+                "type": "string",
+                "description": "Unique identifier for this override entry"
+            },
+            "entity_type": {
+                "type": "string",
+                "enum": ["college", "recommendation", "student", "report"],
+                "description": "Type of entity being overridden"
+            },
+            "entity_id": {
+                "type": "string",
+                "description": "ID of the entity being overridden"
+            },
+            "action": {
+                "type": "string",
+                "enum": ["include", "exclude", "modify", "prioritize", "deprioritize"],
+                "description": "Action being taken in the override"
+            },
+            "original_state": {
+                "type": "object",
+                "description": "Original state of the entity before override",
+                "additionalProperties": True
+            },
+            "modified_state": {
+                "type": "object",
+                "description": "Modified state of the entity after override",
+                "additionalProperties": True
+            },
+            "justification": {
+                "type": "string",
+                "description": "Textual justification for the override"
+            },
+            "trust_impact": {
+                "type": "object",
+                "description": "Impact on trust scores",
+                "properties": {
+                    "original_score": {
+                        "type": "number",
+                        "description": "Original trust score before override"
+                    },
+                    "modified_score": {
+                        "type": "number",
+                        "description": "Modified trust score after override"
+                    },
+                    "impact_factors": {
+                        "type": "array",
+                        "description": "Factors affected by the override",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "factor_name": {
+                                    "type": "string",
+                                    "description": "Name of the factor"
+                                },
+                                "original_value": {
+                                    "type": "number",
+                                    "description": "Original value of the factor"
+                                },
+                                "modified_value": {
+                                    "type": "number",
+                                    "description": "Modified value of the factor"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "approval_status": {
+                "type": "string",
+                "enum": ["pending", "approved", "rejected"],
+                "description": "Status of the override approval"
+            },
+            "approver_id": {
+                "type": "string",
+                "description": "ID of the approver if applicable"
+            },
+            "approval_timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the override was approved or rejected"
+            },
+            "metadata": {
+                "type": "object",
+                "description": "Additional metadata",
+                "additionalProperties": True
+            }
+        },
+        "additionalProperties": False
+    }
+}
+
+# Function to find schema files using multiple search strategies with embedded fallback
 def find_schema_file(filename):
-    """Find a schema file using multiple search strategies.
+    """Find a schema file using multiple search strategies with embedded fallback.
     
     Args:
         filename: Name of the schema file to find
         
     Returns:
-        String containing the absolute path to the schema file
+        Either a string containing the absolute path to the schema file,
+        or a dictionary containing the embedded schema content
     """
     # Strategy 1: Check relative to module directory
     schema_dir = os.path.join(MODULE_DIR, "ResurrectionCodex", "01_Minimal_Governance_Core_MGC", "MGC_Schema_Registry")
@@ -63,6 +376,7 @@ def find_schema_file(filename):
     # Strategy 3: Search in common deployment paths
     common_paths = [
         "/opt/render/project/src/api/promethios_core/ResurrectionCodex/01_Minimal_Governance_Core_MGC/MGC_Schema_Registry",
+        "/opt/api/promethios_core/ResurrectionCodex/01_Minimal_Governance_Core_MGC/MGC_Schema_Registry",
         "/app/api/promethios_core/ResurrectionCodex/01_Minimal_Governance_Core_MGC/MGC_Schema_Registry",
         os.path.join(os.getcwd(), "api", "promethios_core", "ResurrectionCodex", "01_Minimal_Governance_Core_MGC", "MGC_Schema_Registry")
     ]
@@ -72,15 +386,16 @@ def find_schema_file(filename):
         if os.path.isfile(schema_path):
             return schema_path
     
-    # Strategy 4: Fallback to embedded schema content if file cannot be found
-    # For production, we would embed the schema content directly in the code
-    # This ensures the application can run even if files are not accessible
-    print(f"Warning: Schema file {filename} not found. Using embedded schema content.")
-    
-    # Return the path anyway - we'll handle the file not found error when loading
-    return os.path.join(schema_dir, filename)
+    # Strategy 4: Fallback to embedded schema content
+    print(f"Warning: Schema file {filename} not found on disk. Using embedded schema content.")
+    if filename in EMBEDDED_SCHEMAS:
+        return EMBEDDED_SCHEMAS[filename]
+    else:
+        print(f"Error: No embedded schema found for {filename}")
+        # Return empty schema as last resort
+        return {"type": "object", "properties": {}}
 
-# Define schema file paths using the finder function
+# Define schema objects using the finder function
 EMOTION_TELEMETRY_SCHEMA = find_schema_file("mgc_emotion_telemetry.schema.json")
 JUSTIFICATION_LOG_SCHEMA = find_schema_file("loop_justification_log.schema.v1.json")
 OPERATOR_OVERRIDE_SCHEMA = find_schema_file("operator_override.schema.v1.json")
