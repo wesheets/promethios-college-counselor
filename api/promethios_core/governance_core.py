@@ -11,12 +11,12 @@ import hashlib
 from datetime import datetime
 import jsonschema
 
-# Get the absolute path of the repository root directory
-REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
+# Get the absolute path of the current module directory
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Define absolute paths for logs and schemas
-LOG_DIR = os.path.join(REPO_ROOT, "logs")
-SCHEMA_DIR = os.path.join(REPO_ROOT, "ResurrectionCodex", "01_Minimal_Governance_Core_MGC", "MGC_Schema_Registry")
+# Define paths for logs and schemas relative to the module directory
+LOG_DIR = os.path.join(MODULE_DIR, "logs")
+SCHEMA_DIR = os.path.join(MODULE_DIR, "ResurrectionCodex", "01_Minimal_Governance_Core_MGC", "MGC_Schema_Registry")
 
 # Ensure log directory exists
 os.makedirs(LOG_DIR, exist_ok=True)
