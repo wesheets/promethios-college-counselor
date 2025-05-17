@@ -10,6 +10,10 @@ import os
 import json
 import logging
 from datetime import datetime
+import sys
+
+# Add the current directory to the path to ensure imports work correctly
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import counseling wrapper
 from college_counselor_api.counseling_wrapper import CounselingWrapper
