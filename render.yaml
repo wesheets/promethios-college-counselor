@@ -1,30 +1,46 @@
 services:
   # API Service
   - type: web
-    name: promethios-compliance-api
+    name: promethios-college-counselor-api-v1
     env: python
-    buildCommand: pip install -r api/requirements.txt
-    startCommand: cd api && gunicorn promethios_api:app --bind 0.0.0.0:$PORT --worker-class uvicorn.workers.UvicornWorker
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn college_counselor_api.app:app --bind 0.0.0.0:$PORT
+    repo: https://github.com/wesheets/promethios-college-counselor.git
+    branch: master
+    rootDir: api
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.0
-      - key: WEB_URL
-        fromService:
-          name: promethios-compliance-web
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: 3.9.0
+      - key: COLLEGE_SCORECARD_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /api/health
+    autoDeploy: false
+    plan: pro
 
-  # Web UI Service
+  # Web Service
   - type: web
-    name: promethios-compliance-web
+    name: promethios-college-counselor-web-v1
     env: python
-    buildCommand: pip install -r web/requirements.txt
-    startCommand: cd web && gunicorn app:app --bind 0.0.0.0:$PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    repo: https://github.com/wesheets/promethios-college-counselor.git
+    branch: master
+    rootDir: web
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: API_URL
-        fromService:
-          name: promethios-compliance-api
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://promethios-college-counselor-api-v1.onrender.com
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /health
+    autoDeploy: false
+    plan: pro
