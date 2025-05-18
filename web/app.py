@@ -84,6 +84,11 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+# Health check endpoint for Render
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 # Routes
 @app.route('/')
 def index():
