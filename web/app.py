@@ -40,8 +40,12 @@ if database_url and database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    # Use absolute path for SQLite in production to ensure proper permissions
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////home/ubuntu/promethios-college-counselor/web/instance/college_counselor.db')
+    # For Render deployment, use a writable directory in /tmp
+    if os.environ.get('RENDER'):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/college_counselor.db'
+    else:
+        # For local development
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/college_counselor.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -353,6 +357,22 @@ def chat_interface():
         explanation=explanation,
         suggested_questions=suggested_questions
     )
+
+# System Insights Dashboard
+@app.route('/system-insights', methods=['GET'])
+def system_insights_dashboard():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.filter_by(username=session['user']).first()
+    if not user:
+        session.clear()
+        return redirect(url_for('auth.login'))
+    
+    # Get system insights data
+    insights = system_insights.get_insights(user.id)
+    
+    return render_template('system_insights.html', insights=insights, user=user)
 
 # API proxy routes for frontend JavaScript
 @app.route('/api-proxy/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE'])
