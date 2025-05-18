@@ -7,72 +7,118 @@ This module updates the app.py file to include the new routes and features.
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 import os
 import re
+import sys
+import traceback
 from datetime import datetime
-from models import db, init_db, User, UserProfile, JournalEntry
-from auth import auth
-from api_client import (
-    get_college_recommendations, 
-    analyze_journal_entry, 
-    get_college_details,
-    search_colleges,
-    generate_report,
-    get_emotional_state_history,
-    get_trust_score_explanation
-)
-from emotion_visualization import EmotionVisualization, register_emotion_visualization_routes
-from trust_visualization import TrustVisualization, register_trust_visualization_routes
-from college_comparison import CollegeComparisonTool, register_college_comparison_routes
-from decision_explainer import DecisionExplainer, register_decision_explainer_routes
-from system_insights import SystemInsights
-import plotly
-import plotly.graph_objects as go
-import pandas as pd
 
+# Initialize Flask app first, before any other imports or initialization
 app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-testing')
 
-# Database configuration with diagnostic logging
-print(f"Environment variables: RENDER={os.environ.get('RENDER')}, DATABASE_URL={os.environ.get('DATABASE_URL', 'Not set')}")
+# Register health check endpoint before any other initialization
+# This ensures it's available even if other parts of the app fail to initialize
+@app.route('/health')
+def health_check():
+    # Log health check request for debugging
+    print(f"Health check requested from {request.remote_addr}")
+    return jsonify({
+        "status": "healthy", 
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0"
+    }), 200
 
-# Always use in-memory SQLite unless a valid PostgreSQL URL is provided
-# This ensures the application can start in any environment
-database_url = os.environ.get('DATABASE_URL')
-if database_url and database_url.startswith('postgres://'):
-    # Convert postgres:// to postgresql:// for SQLAlchemy 1.4+
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print(f"Using PostgreSQL database: {database_url}")
-else:
-    # Use in-memory SQLite for all other cases to avoid file access issues
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    print(f"Using in-memory SQLite database for deployment")
+# Diagnostic logging for startup
+print(f"Starting application initialization at {datetime.utcnow().isoformat()}")
+print(f"Python version: {sys.version}")
+print(f"Environment variables: RENDER={os.environ.get('RENDER')}, DATABASE_URL={os.environ.get('DATABASE_URL', 'Not set')}, PORT={os.environ.get('PORT', 'Not set')}")
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+try:
+    # Import models and other dependencies after health check is registered
+    from models import db, init_db, User, UserProfile, JournalEntry
+    from auth import auth
+    from api_client import (
+        get_college_recommendations, 
+        analyze_journal_entry, 
+        get_college_details,
+        search_colleges,
+        generate_report,
+        get_emotional_state_history,
+        get_trust_score_explanation
+    )
+    from emotion_visualization import EmotionVisualization
+    from trust_visualization import TrustVisualization
+    from college_comparison import CollegeComparisonTool
+    from decision_explainer import DecisionExplainer
+    from system_insights import SystemInsights
 
-# Initialize database
-init_db(app)
+    # Register blueprints
+    app.register_blueprint(auth)
 
-# Register blueprints
-app.register_blueprint(auth, url_prefix='/auth')
+    # Database configuration
+    # Always use in-memory SQLite unless a valid PostgreSQL URL is provided
+    # This ensures the application can start in any environment
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        # Convert postgres:// to postgresql:// for SQLAlchemy 1.4+
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        print(f"Using PostgreSQL database: {database_url}")
+    else:
+        # Use in-memory SQLite for all other cases to avoid file access issues
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        print(f"Using in-memory SQLite database for deployment")
 
-# Initialize feature modules
-emotion_viz = EmotionVisualization(None)
-trust_viz = TrustVisualization(None)
-comparison_tool = CollegeComparisonTool(None)
-decision_explainer = DecisionExplainer(None)
-system_insights = SystemInsights(app, db)
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Register feature routes
-register_emotion_visualization_routes(app, db)
-register_trust_visualization_routes(app, db)
-register_college_comparison_routes(app, db)
-register_decision_explainer_routes(app, db)
+    # Initialize database with error handling
+    try:
+        init_db(app)
+        print("Database initialization completed successfully")
+    except Exception as e:
+        print(f"WARNING: Database initialization error: {e}")
+        traceback.print_exc()
+        print("Continuing application startup despite database error")
+        
+    # Initialize feature modules with error handling
+    try:
+        # Initialize feature modules
+        emotion_viz = EmotionVisualization(None)
+        trust_viz = TrustVisualization(None)
+        comparison_tool = CollegeComparisonTool(None)
+        decision_explainer = DecisionExplainer(None)
+        system_insights = SystemInsights(app, db)
+
+        # Register feature routes
+        from emotion_visualization import register_emotion_visualization_routes
+        from trust_visualization import register_trust_visualization_routes
+        from college_comparison import register_college_comparison_routes
+        from decision_explainer import register_decision_explainer_routes
+
+        register_emotion_visualization_routes(app, db)
+        register_trust_visualization_routes(app, db)
+        register_college_comparison_routes(app, db)
+        register_decision_explainer_routes(app, db)
+        
+        print("Feature modules initialized successfully")
+    except Exception as e:
+        print(f"WARNING: Feature module initialization error: {e}")
+        traceback.print_exc()
+        print("Continuing application startup with limited features")
+        
+except Exception as e:
+    print(f"ERROR during application initialization: {e}")
+    traceback.print_exc()
+    print("Application will continue with limited functionality")
 
 # Middleware to check if user is logged in
 @app.before_request
 def check_user_status():
+    # Skip middleware for health check endpoint
+    if request.path == '/health':
+        return None
+        
     allowed_routes = ['index', 'static', 'auth.login', 'auth.register', 'auth.reset_password_request', 'chat_interface']
     if request.endpoint and request.endpoint not in allowed_routes and 'user' not in session:
         return redirect(url_for('auth.login'))
@@ -85,13 +131,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-# Health check endpoint for Render
-@app.route('/health')
-def health_check():
-    # Log health check request for debugging
-    print(f"Health check requested from {request.remote_addr}")
-    return jsonify({"status": "healthy", "timestamp": datetime.utcnow().isoformat()}), 200
 
 # Routes
 @app.route('/')
