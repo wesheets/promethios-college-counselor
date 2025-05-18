@@ -414,7 +414,7 @@ def chat_interface():
 
 # System Insights Dashboard
 @app.route('/system-insights', methods=['GET'])
-def system_insights():
+def system_insights_dashboard():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
         
