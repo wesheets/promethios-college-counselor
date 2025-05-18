@@ -95,11 +95,13 @@ try:
         from trust_visualization import register_trust_visualization_routes
         from college_comparison import register_college_comparison_routes
         from decision_explainer import register_decision_explainer_routes
+        from system_insights import register_system_insights_routes
 
         register_emotion_visualization_routes(app, db)
         register_trust_visualization_routes(app, db)
         register_college_comparison_routes(app, db)
         register_decision_explainer_routes(app, db)
+        register_system_insights_routes(app, db)
         
         print("Feature modules initialized successfully")
     except Exception as e:
@@ -269,13 +271,23 @@ def college_details(college_id):
         session.clear()
         return redirect(url_for('auth.login'))
     
-    # Get college details from API
-    college = get_college_details(college_id)
-    
-    # Get trust score explanation from API
-    trust_score = get_trust_score_explanation(college_id, user.id)
-    
-    return render_template('college_details.html', college=college, trust_score=trust_score)
+    try:
+        # Get college details from API
+        college = get_college_details(college_id)
+        
+        # Get trust score explanation from API
+        trust_score = get_trust_score_explanation(college_id, user.id)
+        
+        # Add detailed explanations to trust factors if missing
+        for factor in trust_score.get('factors', []):
+            if 'detailed_explanation' not in factor:
+                factor['detailed_explanation'] = f"This score is calculated based on your profile data and the college's characteristics. {factor.get('description', '')}"
+        
+        return render_template('college_details.html', college=college, trust_score=trust_score)
+    except Exception as e:
+        print(f"Error in college_details: {e}")
+        flash(f"An error occurred while loading college details. Please try again later.")
+        return redirect(url_for('colleges'))
 
 @app.route('/colleges/search', methods=['GET', 'POST'])
 def college_search():
@@ -435,39 +447,9 @@ def system_insights_dashboard():
             "message": "Unable to load system insights at this time."
         }
     
-    return render_template('system_insights.html', insights=insights, user=user)
+    return render_template('system_insights.html', user=user, insights=insights)
 
-# API proxy routes for frontend JavaScript
-@app.route('/api-proxy/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def api_proxy(endpoint):
-    if 'user' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-    
-    user = User.query.filter_by(username=session['user']).first()
-    if not user:
-        session.clear()
-        return jsonify({'error': 'User not found'}), 401
-    
-    from api_client import APIClient
-    client = APIClient()
-    
-    if request.method == 'GET':
-        result = client.get(endpoint, request.args.to_dict())
-    elif request.method == 'POST':
-        result = client.post(endpoint, request.get_json())
-    elif request.method == 'PUT':
-        result = client.put(endpoint, request.get_json())
-    elif request.method == 'DELETE':
-        result = client.delete(endpoint)
-    
-    if result.get('error'):
-        status_code = result.get('status_code', 500)
-        return jsonify(result), status_code
-    
-    return jsonify(result)
-
+# Configure port for Render deployment
 if __name__ == '__main__':
-    # Use PORT environment variable if available (for Render compatibility)
     port = int(os.environ.get('PORT', 5000))
-    print(f"Starting Flask app on port {port}")
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
