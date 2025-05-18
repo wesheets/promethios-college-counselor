@@ -406,7 +406,8 @@ def register_decision_explainer_routes(app, db):
     Args:
         app: Flask application
         db: SQLAlchemy database
-    """    from models import User
+    """
+    from models import User
     from api_client import APIClient, get_college_details
     
     @app.route('/decision-explainer/<college_id>', methods=['GET', 'POST'])
