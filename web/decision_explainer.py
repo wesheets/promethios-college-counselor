@@ -346,55 +346,35 @@ class DecisionExplainer:
                 "score": np.random.randint(60, 100),
                 "weight": 2.0,
                 "explanation": {
-                    "summary": "Your academic profile aligns well with this college's requirements.",
-                    "details": [
-                        f"Your GPA of {student_profile.get('gpa', '3.5')} is within the typical range for admitted students.",
-                        "Your intended major is well-supported at this institution."
-                    ]
+                    "summary": "Your academic profile aligns well with this college's standards."
                 }
             },
             "financial_fit": {
                 "score": np.random.randint(40, 90),
                 "weight": 1.5,
                 "explanation": {
-                    "summary": "The college's cost aligns moderately with your budget.",
-                    "details": [
-                        f"Your budget is {student_profile.get('budget', '$20,000')} per year.",
-                        f"The average net price is {college.get('avg_net_price', '$25,000')} per year."
-                    ]
+                    "summary": "The cost is within your budget range."
                 }
             },
             "location_match": {
                 "score": np.random.randint(50, 100),
                 "weight": 1.0,
                 "explanation": {
-                    "summary": "The college's location matches your preferences.",
-                    "details": [
-                        f"You prefer {student_profile.get('location_preference', 'urban')} settings.",
-                        f"This college is in a {college.get('setting', 'urban')} environment."
-                    ]
+                    "summary": "The location matches your preferences."
                 }
             },
             "size_fit": {
                 "score": np.random.randint(60, 100),
                 "weight": 0.8,
                 "explanation": {
-                    "summary": "The college's size aligns with your preferences.",
-                    "details": [
-                        f"You prefer {student_profile.get('size_preference', 'medium')} sized institutions.",
-                        f"This college has {college.get('student_size', '10,000')} students."
-                    ]
+                    "summary": "The student population size aligns with your preferences."
                 }
             },
             "emotional_alignment": {
                 "score": np.random.randint(70, 100),
                 "weight": 1.2,
                 "explanation": {
-                    "summary": "Based on your journal entries, this college environment aligns with your emotional needs.",
-                    "details": [
-                        "Your journal entries indicate a preference for collaborative environments.",
-                        "This college emphasizes community and collaboration."
-                    ]
+                    "summary": "Based on your journal entries, this college environment aligns with your emotional needs."
                 }
             }
         }
@@ -426,9 +406,8 @@ def register_decision_explainer_routes(app, db):
     Args:
         app: Flask application
         db: SQLAlchemy database
-    """
-    from models import User, College
-    from api_client import APIClient
+    """    from models import User
+    from api_client import APIClient, get_college_details
     
     @app.route('/decision-explainer/<college_id>', methods=['GET', 'POST'])
     def decision_explainer(college_id):
@@ -441,10 +420,11 @@ def register_decision_explainer_routes(app, db):
             session.clear()
             return redirect(url_for('auth.login'))
         
-        # Get college data
+        # Initialize API client
         api_client = APIClient()
-        college = api_client.get_college_details(college_id)
         
+        # Get college details
+        college = get_college_details(college_id)
         if not college:
             flash('College not found.')
             return redirect(url_for('colleges'))
@@ -452,37 +432,34 @@ def register_decision_explainer_routes(app, db):
         # Initialize explainer
         explainer = DecisionExplainer(api_client)
         
-        # Default explanation
-        explanation = None
-        query = "Why was this college recommended for me?"
+        # Handle question submission
+        question = None
+        answer = None
         
         if request.method == 'POST':
-            # Get query from form
-            query = request.form.get('query', '')
-            
-            # Generate explanation
-            explanation = explainer.explain_decision(
-                query=query,
-                student_profile=user.profile.to_dict(),
-                college=college
-            )
+            question = request.form.get('question')
+            if question:
+                answer = explainer.explain_decision(
+                    query=question,
+                    student_profile=user.profile.to_dict(),
+                    college=college
+                )
         
-        # Get suggested questions
+        # Suggested questions
         suggested_questions = [
             "Why was this college recommended for me?",
             "How was the trust score calculated?",
             "What factors contributed most to this recommendation?",
-            "How does this college compare to other recommendations?",
-            "Is this college a good financial fit for me?",
-            "What are the strengths and weaknesses of this match?"
+            "How does this college compare to others?",
+            "Is this college a good financial fit for me?"
         ]
         
         return render_template(
             'decision_explainer.html',
             user=user,
             college=college,
-            query=query,
-            explanation=explanation,
+            question=question,
+            answer=answer,
             suggested_questions=suggested_questions
         )
     
@@ -500,68 +477,54 @@ def register_decision_explainer_routes(app, db):
         # Initialize API client
         api_client = APIClient()
         
-        # Get selected college IDs from form or session
-        selected_ids = []
+        # Get selected college IDs from session
+        selected_ids = session.get('comparison_colleges', [])
+        if not selected_ids:
+            flash('No colleges selected for comparison.')
+            return redirect(url_for('college_comparison'))
         
-        if request.method == 'POST' and 'college_ids' in request.form:
-            # Get selected colleges from form
-            selected_ids = request.form.getlist('college_ids')
-            session['explainer_colleges'] = selected_ids
-        elif 'explainer_colleges' in session:
-            # Get selected colleges from session
-            selected_ids = session['explainer_colleges']
-        
-        # Validate selected colleges (limit to 3)
-        if len(selected_ids) > 3:
-            selected_ids = selected_ids[:3]
-            flash('Maximum of 3 colleges can be compared at once.')
-        
-        # Get college data
+        # Get college details
         colleges = []
         for college_id in selected_ids:
-            college = api_client.get_college_details(college_id)
+            college = get_college_details(college_id)
             if college:
                 colleges.append(college)
         
-        # Default explanation
-        explanation = None
-        query = "How do these colleges compare for me?"
+        if not colleges:
+            flash('No valid colleges found for comparison.')
+            return redirect(url_for('college_comparison'))
         
-        if request.method == 'POST' and 'query' in request.form and colleges:
-            # Get query from form
-            query = request.form.get('query', '')
-            
-            # Initialize explainer
-            explainer = DecisionExplainer(api_client)
-            
-            # Generate explanation
-            explanation = explainer.explain_comparison(
-                query=query,
-                student_profile=user.profile.to_dict(),
-                colleges=colleges
-            )
+        # Initialize explainer
+        explainer = DecisionExplainer(api_client)
         
-        # Get all colleges for selection
-        all_colleges = api_client.get_college_recommendations(user.id)
+        # Handle question submission
+        question = None
+        answer = None
         
-        # Get suggested questions
+        if request.method == 'POST':
+            question = request.form.get('question')
+            if question:
+                answer = explainer.explain_comparison(
+                    query=question,
+                    student_profile=user.profile.to_dict(),
+                    colleges=colleges
+                )
+        
+        # Suggested questions
         suggested_questions = [
-            "How do these colleges compare for me?",
-            "Which of these colleges is the best fit for me?",
             "What are the main differences between these colleges?",
-            "How do the costs of these colleges compare?",
-            "Which college has the strongest academic match?",
-            "What are the trade-offs between these options?"
+            "Which college is the best fit for me?",
+            "How do these colleges compare in terms of cost?",
+            "What are the academic differences between these colleges?",
+            "Which college has the best location for my preferences?"
         ]
         
         return render_template(
             'comparison_explainer.html',
             user=user,
-            all_colleges=all_colleges.get('recommendations', []),
-            selected_ids=selected_ids,
             colleges=colleges,
-            query=query,
-            explanation=explanation,
+            question=question,
+            answer=answer,
             suggested_questions=suggested_questions
         )
     
@@ -578,18 +541,17 @@ def register_decision_explainer_routes(app, db):
         
         # Get data from request
         data = request.get_json()
-        query = data.get('query', '')
-        college_id = data.get('college_id', '')
+        college_id = data.get('college_id')
+        question = data.get('question')
         
-        if not query or not college_id:
-            return jsonify({'error': 'Missing query or college_id'}), 400
+        if not college_id or not question:
+            return jsonify({'error': 'Missing required parameters'}), 400
         
         # Initialize API client
         api_client = APIClient()
         
-        # Get college data
-        college = api_client.get_college_details(college_id)
-        
+        # Get college details
+        college = get_college_details(college_id)
         if not college:
             return jsonify({'error': 'College not found'}), 404
         
@@ -597,15 +559,62 @@ def register_decision_explainer_routes(app, db):
         explainer = DecisionExplainer(api_client)
         
         # Generate explanation
-        explanation = explainer.explain_decision(
-            query=query,
+        answer = explainer.explain_decision(
+            query=question,
             student_profile=user.profile.to_dict(),
             college=college
         )
         
         return jsonify({
-            'query': query,
-            'college_id': college_id,
-            'college_name': college.get('name', ''),
-            'explanation': explanation
+            'question': question,
+            'answer': answer,
+            'college': college
+        })
+    
+    @app.route('/api/explain-comparison', methods=['POST'])
+    def api_explain_comparison():
+        """API endpoint for comparison explanation."""
+        if 'user' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+            
+        user = User.query.filter_by(username=session['user']).first()
+        if not user:
+            session.clear()
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Get data from request
+        data = request.get_json()
+        college_ids = data.get('college_ids', [])
+        question = data.get('question')
+        
+        if not college_ids or not question:
+            return jsonify({'error': 'Missing required parameters'}), 400
+        
+        # Initialize API client
+        api_client = APIClient()
+        
+        # Get college details
+        colleges = []
+        for college_id in college_ids:
+            college = get_college_details(college_id)
+            if college:
+                colleges.append(college)
+        
+        if not colleges:
+            return jsonify({'error': 'No valid colleges found'}), 404
+        
+        # Initialize explainer
+        explainer = DecisionExplainer(api_client)
+        
+        # Generate explanation
+        answer = explainer.explain_comparison(
+            query=question,
+            student_profile=user.profile.to_dict(),
+            colleges=colleges
+        )
+        
+        return jsonify({
+            'question': question,
+            'answer': answer,
+            'colleges': colleges
         })
