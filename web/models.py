@@ -139,42 +139,60 @@ def init_db(app):
     """Initialize the database with the Flask app."""
     db.init_app(app)
     
-    with app.app_context():
-        db.create_all()
-        
-        # Create default users if they don't exist
-        if not User.query.filter_by(username='student').first():
-            student = User(
-                username='student',
-                email='student@example.com',
-                password='password',
-                role='student',
-                name='John Smith'
-            )
-            db.session.add(student)
+    # Ensure database directory exists
+    import os
+    db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+    if db_path.startswith('/'):  # Absolute path
+        db_dir = os.path.dirname(db_path)
+        if not os.path.exists(db_dir):
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+                print(f"Created database directory: {db_dir}")
+            except Exception as e:
+                print(f"Warning: Could not create database directory: {e}")
+    
+    try:
+        with app.app_context():
+            db.create_all()
             
-            # Create profile for student
-            profile = UserProfile(user=student)
-            db.session.add(profile)
-            
-        if not User.query.filter_by(username='counselor').first():
-            counselor = User(
-                username='counselor',
-                email='counselor@example.com',
-                password='password',
-                role='counselor',
-                name='Dr. Jane Doe'
-            )
-            db.session.add(counselor)
-            
-        if not User.query.filter_by(username='admin').first():
-            admin = User(
-                username='admin',
-                email='admin@example.com',
-                password='password',
-                role='admin',
-                name='Admin User'
-            )
-            db.session.add(admin)
-            
-        db.session.commit()
+            # Create default users if they don't exist
+            if not User.query.filter_by(username='student').first():
+                student = User(
+                    username='student',
+                    email='student@example.com',
+                    password='password',
+                    role='student',
+                    name='John Smith'
+                )
+                db.session.add(student)
+                
+                # Create profile for student
+                profile = UserProfile(user=student)
+                db.session.add(profile)
+                
+            if not User.query.filter_by(username='counselor').first():
+                counselor = User(
+                    username='counselor',
+                    email='counselor@example.com',
+                    password='password',
+                    role='counselor',
+                    name='Dr. Jane Doe'
+                )
+                db.session.add(counselor)
+                
+            if not User.query.filter_by(username='admin').first():
+                admin = User(
+                    username='admin',
+                    email='admin@example.com',
+                    password='password',
+                    role='admin',
+                    name='Admin User'
+                )
+                db.session.add(admin)
+                
+            db.session.commit()
+            print("Database initialized successfully")
+    except Exception as e:
+        print(f"Warning: Database initialization error: {e}")
+        # Continue application startup even if database initialization fails
+        # This allows the health check endpoint to work

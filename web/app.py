@@ -32,20 +32,21 @@ app = Flask(__name__)
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-testing')
 
-# Database configuration
-# Handle Render's PostgreSQL connection string if present
+# Database configuration with diagnostic logging
+print(f"Environment variables: RENDER={os.environ.get('RENDER')}, DATABASE_URL={os.environ.get('DATABASE_URL', 'Not set')}")
+
+# Always use in-memory SQLite unless a valid PostgreSQL URL is provided
+# This ensures the application can start in any environment
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith('postgres://'):
     # Convert postgres:// to postgresql:// for SQLAlchemy 1.4+
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"Using PostgreSQL database: {database_url}")
 else:
-    # For Render deployment, use a writable directory in /tmp
-    if os.environ.get('RENDER'):
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/college_counselor.db'
-    else:
-        # For local development
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/college_counselor.db'
+    # Use in-memory SQLite for all other cases to avoid file access issues
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    print(f"Using in-memory SQLite database for deployment")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
