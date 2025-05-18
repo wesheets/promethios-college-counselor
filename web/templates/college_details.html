@@ -82,7 +82,7 @@
           </div>
         </div>
         
-        <div class="card">
+        <div class="card mb-4">
           <div class="card-header">
             <h3>Financial Information</h3>
           </div>
@@ -103,6 +103,54 @@
                 <p>${{ college.average_aid_package }} per year</p>
               </div>
             </div>
+          </div>
+        </div>
+        
+        <!-- New College-Specific Chat Interface -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Ask About {{ college.name }}</h3>
+          </div>
+          <div class="card-body">
+            <p class="mb-3">Have questions about this college? Ask Promethios for personalized insights and explanations.</p>
+            
+            <form method="post" action="{{ url_for('chat_interface') }}" id="collegeQuestionForm">
+              <input type="hidden" name="college_id" value="{{ college.id }}">
+              
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" name="query" id="collegeQuestion" placeholder="Ask a question about {{ college.name }}..." required>
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-paper-plane me-1"></i> Ask
+                </button>
+              </div>
+            </form>
+            
+            <div class="suggested-questions mt-3">
+              <p><strong>Suggested questions:</strong></p>
+              <div class="d-flex flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary me-2 mb-2 suggested-question" data-question="Why is {{ college.name }} a good fit for me?">Why is this a good fit for me?</button>
+                <button class="btn btn-sm btn-outline-secondary me-2 mb-2 suggested-question" data-question="What are my chances of getting into {{ college.name }}?">What are my chances?</button>
+                <button class="btn btn-sm btn-outline-secondary me-2 mb-2 suggested-question" data-question="How does {{ college.name }} compare to other colleges in my list?">How does it compare?</button>
+                <button class="btn btn-sm btn-outline-secondary me-2 mb-2 suggested-question" data-question="What are the strengths and weaknesses of {{ college.name }} for my profile?">Strengths & weaknesses?</button>
+              </div>
+            </div>
+            
+            {% if explanation %}
+            <div class="chat-response mt-4">
+              <div class="chat-bubble">
+                <div class="chat-header">
+                  <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Promethios" class="chat-avatar">
+                  <span class="chat-name">Promethios College Counselor</span>
+                </div>
+                <div class="chat-content">
+                  {{ explanation|safe|replace('\n', '<br>')|replace('  ', '&nbsp;&nbsp;') }}
+                </div>
+                <div class="chat-footer">
+                  <small class="text-muted">Powered by Promethios Kernel</small>
+                </div>
+              </div>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -130,8 +178,27 @@
                   <div class="progress-bar {{ 'bg-success' if factor.score >= 80 else 'bg-primary' if factor.score >= 60 else 'bg-danger' }}" role="progressbar" style="width: {{ factor.score }}%;" aria-valuenow="{{ factor.score }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <small class="text-muted">{{ factor.description }}</small>
+                
+                <!-- New: Detailed explanation toggle -->
+                <div class="mt-1">
+                  <a href="#" class="factor-explanation-toggle" data-bs-toggle="collapse" data-bs-target="#factor-explanation-{{ loop.index }}">
+                    <i class="fas fa-info-circle"></i> Why this score?
+                  </a>
+                  <div class="collapse mt-2" id="factor-explanation-{{ loop.index }}">
+                    <div class="card card-body bg-light">
+                      <p class="mb-0">{{ factor.detailed_explanation }}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             {% endfor %}
+            
+            <!-- New: View Full Trust Analysis button -->
+            <div class="d-grid gap-2 mt-4">
+              <a href="{{ url_for('trust_visualization', college_id=college.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-radar me-1"></i> View Full Trust Analysis
+              </a>
+            </div>
           </div>
         </div>
         
@@ -148,6 +215,8 @@
               <div class="progress">
                 <div class="progress-bar bg-info" role="progressbar" style="width: {{ college.academic_match }}%;" aria-valuenow="{{ college.academic_match }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
+              <!-- New: Match explanation -->
+              <small class="text-muted">Based on your GPA, test scores, and academic interests.</small>
             </div>
             
             <div class="mb-3">
@@ -158,6 +227,8 @@
               <div class="progress">
                 <div class="progress-bar bg-success" role="progressbar" style="width: {{ college.financial_match }}%;" aria-valuenow="{{ college.financial_match }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
+              <!-- New: Match explanation -->
+              <small class="text-muted">Based on your budget and potential financial aid.</small>
             </div>
             
             <div class="mb-3">
@@ -168,6 +239,8 @@
               <div class="progress">
                 <div class="progress-bar bg-primary" role="progressbar" style="width: {{ college.social_match }}%;" aria-valuenow="{{ college.social_match }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
+              <!-- New: Match explanation -->
+              <small class="text-muted">Based on location preferences, campus culture, and size.</small>
             </div>
             
             <div class="mb-3">
@@ -178,6 +251,15 @@
               <div class="progress">
                 <div class="progress-bar {{ 'bg-success' if college.overall_match >= 80 else 'bg-primary' if college.overall_match >= 60 else 'bg-danger' }}" role="progressbar" style="width: {{ college.overall_match }}%;" aria-valuenow="{{ college.overall_match }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
+              <!-- New: Match explanation -->
+              <small class="text-muted">Weighted combination of all factors based on your priorities.</small>
+            </div>
+            
+            <!-- New: View Detailed Comparison button -->
+            <div class="d-grid gap-2 mt-4">
+              <a href="{{ url_for('college_comparison') }}?college_ids={{ college.id }}" class="btn btn-outline-primary">
+                <i class="fas fa-balance-scale me-1"></i> Compare With Other Colleges
+              </a>
             </div>
           </div>
         </div>
@@ -191,9 +273,9 @@
               <button class="btn btn-primary" id="addToFavoritesBtn">
                 <i class="fas fa-heart me-1"></i> Add to Favorites
               </button>
-              <button class="btn btn-outline-primary" id="compareBtn">
-                <i class="fas fa-balance-scale me-1"></i> Compare
-              </button>
+              <a href="{{ url_for('decision_explainer', college_id=college.id) }}" class="btn btn-success">
+                <i class="fas fa-comment-dots me-1"></i> Get Decision Explanation
+              </a>
               <a href="{{ college.website }}" target="_blank" class="btn btn-outline-secondary">
                 <i class="fas fa-external-link-alt me-1"></i> Visit Website
               </a>
@@ -220,14 +302,92 @@
       });
     }
     
-    // Compare functionality
-    const compareBtn = document.getElementById('compareBtn');
-    if (compareBtn) {
-      compareBtn.addEventListener('click', function() {
-        // In a real app, this would add to a comparison list
-        window.notificationSystem.info('Added to comparison list. Go to Colleges page to compare.');
+    // Suggested questions functionality
+    const suggestedQuestions = document.querySelectorAll('.suggested-question');
+    const collegeQuestionInput = document.getElementById('collegeQuestion');
+    
+    suggestedQuestions.forEach(button => {
+      button.addEventListener('click', function() {
+        const question = this.getAttribute('data-question');
+        collegeQuestionInput.value = question;
+        document.getElementById('collegeQuestionForm').submit();
       });
+    });
+    
+    // Smooth scrolling to chat response if present
+    const chatResponse = document.querySelector('.chat-response');
+    if (chatResponse) {
+      chatResponse.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 </script>
+
+<style>
+  .trust-score-circle {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto;
+  }
+  
+  .high-score {
+    background-color: #28a745;
+  }
+  
+  .medium-score {
+    background-color: #007bff;
+  }
+  
+  .low-score {
+    background-color: #dc3545;
+  }
+  
+  .factor-explanation-toggle {
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  
+  .chat-bubble {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .chat-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .chat-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .chat-name {
+    font-weight: bold;
+  }
+  
+  .chat-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  
+  .chat-footer {
+    margin-top: 10px;
+    text-align: right;
+  }
+</style>
 {% endblock %}
