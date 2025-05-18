@@ -9,7 +9,7 @@ import plotly
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from flask import jsonify, render_template, request, session
+from flask import jsonify, render_template, request, session, redirect, url_for, flash
 
 class TrustVisualization:
     """Generates visualizations of trust factors."""
@@ -355,8 +355,8 @@ def register_trust_visualization_routes(app, db):
         app: Flask application
         db: SQLAlchemy database
     """
-    from models import User, College
-    from api_client import APIClient
+    from models import User
+    from api_client import APIClient, get_college_details
     
     @app.route('/trust-visualization/<college_id>', methods=['GET'])
     def trust_visualization(college_id):
@@ -369,15 +369,15 @@ def register_trust_visualization_routes(app, db):
             session.clear()
             return redirect(url_for('auth.login'))
         
-        # Get college data
-        api_client = APIClient()
-        college = api_client.get_college_details(college_id)
+        # Get college data from API instead of database
+        college = get_college_details(college_id)
         
         if not college:
             flash('College not found.')
             return redirect(url_for('colleges'))
         
         # Initialize visualization
+        api_client = APIClient()
         visualizer = TrustVisualization(api_client)
         
         # Generate radar chart
@@ -409,14 +409,14 @@ def register_trust_visualization_routes(app, db):
             session.clear()
             return jsonify({'error': 'User not found'}), 401
         
-        # Get college data
-        api_client = APIClient()
-        college = api_client.get_college_details(college_id)
+        # Get college data from API instead of database
+        college = get_college_details(college_id)
         
         if not college:
             return jsonify({'error': 'College not found'}), 404
         
         # Initialize visualization
+        api_client = APIClient()
         visualizer = TrustVisualization(api_client)
         
         # Generate factor breakdown
