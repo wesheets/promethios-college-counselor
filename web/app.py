@@ -356,35 +356,41 @@ def chat_interface():
         session.clear()
         return redirect(url_for('auth.login'))
     
-    # Get college recommendations for selection
-    profile_data = user.profile.to_dict() if user.profile else None
-    recommendations = get_college_recommendations(user.id, profile_data)
-    colleges = recommendations.get('recommendations', [])
-    
     # Initialize variables
     selected_college = None
     explanation = None
     query = "How can Promethios help with my college decision?"
+    colleges = []
     
-    if request.method == 'POST':
-        query = request.form.get('query', '')
-        college_id = request.form.get('college_id', '')
+    try:
+        # Get college recommendations for selection
+        profile_data = user.profile.to_dict() if user.profile else {}
+        recommendations = get_college_recommendations(user.id, profile_data)
+        colleges = recommendations.get('recommendations', [])
         
-        if college_id:
-            # Get college details
-            selected_college = get_college_details(college_id)
+        if request.method == 'POST':
+            query = request.form.get('query', '')
+            college_id = request.form.get('college_id', '')
             
-            # Initialize explainer
-            from api_client import APIClient
-            api_client = APIClient()
-            explainer = DecisionExplainer(api_client)
-            
-            # Generate explanation
-            explanation = explainer.explain_decision(
-                query=query,
-                student_profile=user.profile.to_dict(),
-                college=selected_college
-            )
+            if college_id:
+                # Get college details
+                selected_college = get_college_details(college_id)
+                
+                # Initialize explainer
+                from api_client import APIClient
+                api_client = APIClient()
+                explainer = DecisionExplainer(api_client)
+                
+                # Generate explanation
+                explanation = explainer.explain_decision(
+                    query=query,
+                    student_profile=user.profile.to_dict() if user.profile else {},
+                    college=selected_college
+                )
+    except Exception as e:
+        print(f"Error in chat_interface: {e}")
+        flash(f"An error occurred: {str(e)}")
+        explanation = f"I'm sorry, I encountered an error while processing your request. Please try again later."
     
     # Suggested questions
     suggested_questions = [
@@ -408,7 +414,7 @@ def chat_interface():
 
 # System Insights Dashboard
 @app.route('/system-insights', methods=['GET'])
-def system_insights_dashboard():
+def system_insights():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
         
@@ -418,7 +424,16 @@ def system_insights_dashboard():
         return redirect(url_for('auth.login'))
     
     # Get system insights data
-    insights = system_insights.get_insights(user.id)
+    try:
+        from system_insights import get_insights
+        insights = get_insights(user.id)
+    except Exception as e:
+        print(f"Error in system_insights: {e}")
+        flash(f"An error occurred while loading system insights: {str(e)}")
+        insights = {
+            "error": True,
+            "message": "Unable to load system insights at this time."
+        }
     
     return render_template('system_insights.html', insights=insights, user=user)
 
