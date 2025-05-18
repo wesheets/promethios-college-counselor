@@ -1,11 +1,12 @@
 """
-Integration of the emotion visualization dashboard with the main application.
+Integration of the chat interface and system insights dashboard with the main application.
 
-This module updates the app.py file to include the emotion visualization routes.
+This module updates the app.py file to include the new routes and features.
 """
 
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 import os
+import re
 from models import db, init_db, User, UserProfile, JournalEntry
 from auth import auth
 from api_client import (
@@ -18,6 +19,10 @@ from api_client import (
     get_trust_score_explanation
 )
 from emotion_visualization import EmotionVisualization, register_emotion_visualization_routes
+from trust_visualization import TrustVisualization, register_trust_visualization_routes
+from college_comparison import CollegeComparisonTool, register_college_comparison_routes
+from decision_explainer import DecisionExplainer, register_decision_explainer_routes
+from system_insights import SystemInsights
 import plotly
 import plotly.graph_objects as go
 import pandas as pd
@@ -26,7 +31,18 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-testing')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///college_counselor.db')
+
+# Database configuration
+# Handle Render's PostgreSQL connection string if present
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres://'):
+    # Convert postgres:// to postgresql:// for SQLAlchemy 1.4+
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Use absolute path for SQLite in production to ensure proper permissions
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////home/ubuntu/promethios-college-counselor/web/instance/college_counselor.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
@@ -35,13 +51,23 @@ init_db(app)
 # Register blueprints
 app.register_blueprint(auth, url_prefix='/auth')
 
-# Register emotion visualization routes
+# Initialize feature modules
+emotion_viz = EmotionVisualization(None)
+trust_viz = TrustVisualization(None)
+comparison_tool = CollegeComparisonTool(None)
+decision_explainer = DecisionExplainer(None)
+system_insights = SystemInsights(app, db)
+
+# Register feature routes
 register_emotion_visualization_routes(app, db)
+register_trust_visualization_routes(app, db)
+register_college_comparison_routes(app, db)
+register_decision_explainer_routes(app, db)
 
 # Middleware to check if user is logged in
 @app.before_request
 def check_user_status():
-    allowed_routes = ['index', 'static', 'auth.login', 'auth.register', 'auth.reset_password_request']
+    allowed_routes = ['index', 'static', 'auth.login', 'auth.register', 'auth.reset_password_request', 'chat_interface']
     if request.endpoint and request.endpoint not in allowed_routes and 'user' not in session:
         return redirect(url_for('auth.login'))
 
@@ -266,6 +292,67 @@ def settings():
         return redirect(url_for('auth.login'))
         
     return render_template('settings.html', user=user)
+
+# New centralized chat interface
+@app.route('/chat', methods=['GET', 'POST'])
+def chat_interface():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.filter_by(username=session['user']).first()
+    if not user:
+        session.clear()
+        return redirect(url_for('auth.login'))
+    
+    # Get college recommendations for selection
+    profile_data = user.profile.to_dict() if user.profile else None
+    recommendations = get_college_recommendations(user.id, profile_data)
+    colleges = recommendations.get('recommendations', [])
+    
+    # Initialize variables
+    selected_college = None
+    explanation = None
+    query = "How can Promethios help with my college decision?"
+    
+    if request.method == 'POST':
+        query = request.form.get('query', '')
+        college_id = request.form.get('college_id', '')
+        
+        if college_id:
+            # Get college details
+            selected_college = get_college_details(college_id)
+            
+            # Initialize explainer
+            from api_client import APIClient
+            api_client = APIClient()
+            explainer = DecisionExplainer(api_client)
+            
+            # Generate explanation
+            explanation = explainer.explain_decision(
+                query=query,
+                student_profile=user.profile.to_dict(),
+                college=selected_college
+            )
+    
+    # Suggested questions
+    suggested_questions = [
+        "Why should I consider this college?",
+        "What are my chances of acceptance?",
+        "Is this college a good financial fit for me?",
+        "How does my academic profile match this college?",
+        "What are the strengths and weaknesses of this match?",
+        "How does this college compare to my other options?"
+    ]
+    
+    return render_template(
+        'chat_interface.html',
+        user=user,
+        colleges=colleges,
+        selected_college=selected_college,
+        query=query,
+        explanation=explanation,
+        suggested_questions=suggested_questions
+    )
 
 # API proxy routes for frontend JavaScript
 @app.route('/api-proxy/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE'])
