@@ -1,0 +1,206 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Trust Factor Visualization{% endblock %}
+
+{% block content %}
+<div class="trust-visualization-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Trust Factor Analysis</h1>
+        <p class="lead">Understanding why {{ college.name }} is recommended for you.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="card-title">Trust Score Summary</h3>
+              <div class="trust-score-badge {{ 'high-score' if trust_summary.overall_score >= 80 else 'medium-score' if trust_summary.overall_score >= 60 else 'low-score' }}">
+                {{ trust_summary.overall_score }}
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-8">
+                <p class="trust-summary">{{ trust_summary.summary }}</p>
+                
+                <div class="category-badge {{ trust_summary.category }}">
+                  {{ trust_summary.category|title }} School
+                </div>
+                
+                <div class="mt-4">
+                  <a href="/colleges/{{ college.id }}" class="btn btn-outline-primary">Back to College Details</a>
+                  <a href="/colleges" class="btn btn-outline-secondary">All Recommendations</a>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="radar-chart"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Factor Breakdown</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Factor</th>
+                    <th>Score</th>
+                    <th>Weight</th>
+                    <th>Explanation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for factor in factor_breakdown %}
+                  <tr>
+                    <td>{{ factor.name }}</td>
+                    <td>
+                      <div class="progress">
+                        <div class="progress-bar {{ 'bg-success' if factor.score >= 80 else 'bg-primary' if factor.score >= 60 else 'bg-warning' if factor.score >= 40 else 'bg-danger' }}" 
+                             role="progressbar" 
+                             style="width: {{ factor.score }}%;" 
+                             aria-valuenow="{{ factor.score }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                          {{ factor.score }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ factor.weight }}</td>
+                    <td>{{ factor.explanation }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Detailed Factor Analysis</h3>
+          </div>
+          <div class="card-body">
+            <div class="accordion" id="factorAccordion">
+              {% for factor in factor_breakdown %}
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+                    {{ factor.name }} (Score: {{ factor.score }})
+                  </button>
+                </h2>
+                <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#factorAccordion">
+                  <div class="accordion-body">
+                    <p>{{ factor.explanation }}</p>
+                    
+                    {% if factor.details %}
+                    <h5>Supporting Details:</h5>
+                    <ul>
+                      {% for detail in factor.details %}
+                      <li>{{ detail }}</li>
+                      {% endfor %}
+                    </ul>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load radar chart
+    const radarChart = JSON.parse('{{ radar_chart | safe }}');
+    
+    // Render chart
+    Plotly.newPlot('radar-chart', radarChart.data, radarChart.layout);
+  });
+</script>
+
+<style>
+  .trust-score-badge {
+    font-size: 2.5rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .high-score {
+    background-color: #28a745;
+  }
+  
+  .medium-score {
+    background-color: #007bff;
+  }
+  
+  .low-score {
+    background-color: #dc3545;
+  }
+  
+  .trust-summary {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  
+  .category-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  .safety {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .target {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  
+  .reach {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .unknown {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}

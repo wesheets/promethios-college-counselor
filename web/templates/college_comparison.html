@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - College Comparison{% endblock %}
+
+{% block content %}
+<div class="college-comparison-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">College Comparison Tool</h1>
+        <p class="lead">Compare multiple colleges side-by-side to make an informed decision.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Select Colleges to Compare</h3>
+            <p>Choose up to 3 colleges to compare side-by-side.</p>
+            
+            <form method="post" action="{{ url_for('college_comparison') }}">
+              <div class="row">
+                {% for college in all_colleges %}
+                <div class="col-md-4 mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="college_ids" value="{{ college.id }}" id="college{{ college.id }}" 
+                           {% if college.id in selected_ids %}checked{% endif %}
+                           {% if selected_ids|length >= 3 and college.id not in selected_ids %}disabled{% endif %}>
+                    <label class="form-check-label" for="college{{ college.id }}">
+                      {{ college.name }}
+                      <span class="badge {{ college.category }}">{{ college.category|title }}</span>
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              
+              <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary">Compare Selected Colleges</button>
+                <a href="{{ url_for('colleges') }}" class="btn btn-outline-secondary">Back to Recommendations</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if comparison_data %}
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Trust Score Comparison</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <div id="radar-chart"></div>
+              </div>
+              <div class="col-md-4">
+                <div class="trust-scores">
+                  {% for score in comparison_data.trust_scores %}
+                    {% for college in comparison_data.colleges %}
+                      {% if college.id == score.college_id %}
+                        <div class="trust-score-card mb-3">
+                          <h4>{{ college.name }}</h4>
+                          <div class="d-flex align-items-center">
+                            <div class="trust-score-badge {{ 'high-score' if score.overall_score >= 80 else 'medium-score' if score.overall_score >= 60 else 'low-score' }}">
+                              {{ score.overall_score }}
+                            </div>
+                            <div class="ms-3">
+                              <div class="category-badge {{ score.category }}">
+                                {{ score.category|title }}
+                              </div>
+                              <div class="mt-2">
+                                <a href="{{ url_for('trust_visualization', college_id=college.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Cost Analysis</h3>
+          </div>
+          <div class="card-body">
+            <div id="cost-chart"></div>
+            
+            <div class="table-responsive mt-4">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>College</th>
+                    <th>Net Price</th>
+                    <th>Your Budget</th>
+                    <th>Difference</th>
+                    <th>Affordability</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in comparison_data.cost_analysis %}
+                    <tr>
+                      <td>{{ item.college_name }}</td>
+                      <td>${{ "{:,}".format(item.net_price) }}</td>
+                      <td>${{ "{:,}".format(item.budget) }}</td>
+                      <td class="{{ 'text-success' if item.difference <= 0 else 'text-danger' }}">
+                        {{ "$" if item.difference > 0 else "-$" }}{{ "{:,}".format(item.difference|abs) }}
+                      </td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar {{ 'bg-success' if item.affordability_score >= 80 else 'bg-primary' if item.affordability_score >= 60 else 'bg-warning' if item.affordability_score >= 40 else 'bg-danger' }}" 
+                               role="progressbar" 
+                               style="width: {{ item.affordability_score }}%;" 
+                               aria-valuenow="{{ item.affordability_score }}" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                            {{ item.affordability_score }}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Admission Statistics</h3>
+          </div>
+          <div class="card-body">
+            <div id="admission-chart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Feature Comparison</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    {% for college in comparison_data.colleges %}
+                      <th>{{ college.name }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in comparison_data.feature_comparison %}
+                    <tr>
+                      <td>{{ row.feature }}</td>
+                      {% for value in row.values %}
+                        <td>
+                          {% if row.format == 'percentage' %}
+                            {{ value }}%
+                          {% elif row.format == 'currency' %}
+                            ${{ "{:,}".format(value) }}
+                          {% elif row.format == 'decimal' %}
+                            {{ "%.2f"|format(value) }}
+                          {% elif row.format == 'ratio' %}
+                            {{ value }}
+                          {% else %}
+                            {{ "{:,}".format(value) }}
+                          {% endif %}
+                        </td>
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if comparison_data %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load charts
+    const radarChart = JSON.parse('{{ comparison_data.radar_chart | safe }}');
+    const costChart = JSON.parse('{{ cost_chart | safe }}');
+    const admissionChart = JSON.parse('{{ admission_chart | safe }}');
+    
+    // Render charts
+    Plotly.newPlot('radar-chart', radarChart.data, radarChart.layout);
+    Plotly.newPlot('cost-chart', costChart.data, costChart.layout);
+    Plotly.newPlot('admission-chart', admissionChart.data, admissionChart.layout);
+    
+    // Handle checkbox limits
+    const checkboxes = document.querySelectorAll('input[name="college_ids"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const checked = document.querySelectorAll('input[name="college_ids"]:checked');
+        
+        if (checked.length >= 3) {
+          checkboxes.forEach(cb => {
+            if (!cb.checked) {
+              cb.disabled = true;
+            }
+          });
+        } else {
+          checkboxes.forEach(cb => {
+            cb.disabled = false;
+          });
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .trust-score-badge {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .high-score {
+    background-color: #28a745;
+  }
+  
+  .medium-score {
+    background-color: #007bff;
+  }
+  
+  .low-score {
+    background-color: #dc3545;
+  }
+  
+  .category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: bold;
+  }
+  
+  .safety {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .target {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  
+  .reach {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .unknown {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+  
+  .trust-score-card {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+</style>
+{% endif %}
+{% endblock %}

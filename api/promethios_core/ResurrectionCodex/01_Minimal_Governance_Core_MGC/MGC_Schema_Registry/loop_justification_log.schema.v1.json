@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Loop Justification Log Schema",
+  "description": "Schema for loop justification log entries in the Promethios system",
+  "type": "object",
+  "required": ["timestamp", "user_id", "justification_id", "decision_type", "justification_text"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the justification was recorded"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Unique identifier for the user providing the justification"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique identifier for the session"
+    },
+    "justification_id": {
+      "type": "string",
+      "description": "Unique identifier for this justification entry"
+    },
+    "decision_type": {
+      "type": "string",
+      "enum": ["override", "exception", "manual_review", "approval", "rejection"],
+      "description": "Type of decision being justified"
+    },
+    "decision_context": {
+      "type": "object",
+      "description": "Context information about the decision",
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "description": "ID of the entity being affected (e.g., college ID)"
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Type of entity being affected (e.g., 'college', 'recommendation')"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action being taken (e.g., 'include', 'exclude')"
+        },
+        "original_score": {
+          "type": "number",
+          "description": "Original trust score before override"
+        },
+        "modified_score": {
+          "type": "number",
+          "description": "Modified trust score after override"
+        }
+      }
+    },
+    "justification_text": {
+      "type": "string",
+      "description": "Textual justification for the decision"
+    },
+    "justification_factors": {
+      "type": "array",
+      "description": "Factors considered in the justification",
+      "items": {
+        "type": "object",
+        "properties": {
+          "factor_name": {
+            "type": "string",
+            "description": "Name of the factor"
+          },
+          "factor_weight": {
+            "type": "number",
+            "description": "Weight assigned to this factor"
+          },
+          "factor_description": {
+            "type": "string",
+            "description": "Description of how this factor influenced the decision"
+          }
+        }
+      }
+    },
+    "approval_chain": {
+      "type": "array",
+      "description": "Chain of approvals if applicable",
+      "items": {
+        "type": "object",
+        "properties": {
+          "approver_id": {
+            "type": "string",
+            "description": "ID of the approver"
+          },
+          "approval_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the approval was granted"
+          },
+          "approval_notes": {
+            "type": "string",
+            "description": "Notes provided by the approver"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

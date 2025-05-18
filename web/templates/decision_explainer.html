@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Decision Explainer{% endblock %}
+
+{% block content %}
+<div class="decision-explainer-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Decision Explainer</h1>
+        <p class="lead">Ask questions about why {{ college.name }} was recommended for you.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="card-title">Ask a Question</h3>
+              <a href="/colleges/{{ college.id }}" class="btn btn-outline-primary">Back to College Details</a>
+            </div>
+            
+            <form method="post" action="{{ url_for('decision_explainer', college_id=college.id) }}">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" name="query" placeholder="Ask a question about this recommendation..." value="{{ query }}" required>
+                <button class="btn btn-primary" type="submit">Ask</button>
+              </div>
+            </form>
+            
+            <div class="suggested-questions mt-3">
+              <p><strong>Suggested questions:</strong></p>
+              <div class="d-flex flex-wrap">
+                {% for question in suggested_questions %}
+                <form method="post" action="{{ url_for('decision_explainer', college_id=college.id) }}" class="me-2 mb-2">
+                  <input type="hidden" name="query" value="{{ question }}">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">{{ question }}</button>
+                </form>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if explanation %}
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Explanation</h3>
+            <p class="text-muted mb-0">Question: {{ query }}</p>
+          </div>
+          <div class="card-body">
+            <div class="explanation-content">
+              {{ explanation|safe|replace('\n', '<br>')|replace('  ', '&nbsp;&nbsp;') }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>College Overview</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h4>{{ college.name }}</h4>
+                <p><strong>Location:</strong> {{ college.location }}</p>
+                <p><strong>Setting:</strong> {{ college.setting|title }}</p>
+                <p><strong>Size:</strong> {{ "{:,}".format(college.student_size) }} students</p>
+                <p><strong>Admission Rate:</strong> {{ college.admission_rate }}%</p>
+                <p><strong>Average Net Price:</strong> ${{ "{:,}".format(college.avg_net_price) }}</p>
+              </div>
+              <div class="col-md-6">
+                <div class="trust-score-card">
+                  <h4>Trust Score</h4>
+                  <div class="d-flex align-items-center">
+                    <div class="trust-score-badge {{ 'high-score' if college.trust_score >= 80 else 'medium-score' if college.trust_score >= 60 else 'low-score' }}">
+                      {{ college.trust_score }}
+                    </div>
+                    <div class="ms-3">
+                      <div class="category-badge {{ college.category }}">
+                        {{ college.category|title }}
+                      </div>
+                      <div class="mt-2">
+                        <a href="{{ url_for('trust_visualization', college_id=college.id) }}" class="btn btn-sm btn-outline-primary">View Trust Factors</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus the query input
+    const queryInput = document.querySelector('input[name="query"]');
+    if (queryInput) {
+      queryInput.focus();
+    }
+  });
+</script>
+
+<style>
+  .explanation-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  
+  .trust-score-badge {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .high-score {
+    background-color: #28a745;
+  }
+  
+  .medium-score {
+    background-color: #007bff;
+  }
+  
+  .low-score {
+    background-color: #dc3545;
+  }
+  
+  .category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: bold;
+  }
+  
+  .safety {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .target {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  
+  .reach {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .unknown {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+  
+  .trust-score-card {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+</style>
+{% endblock %}

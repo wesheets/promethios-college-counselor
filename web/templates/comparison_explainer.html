@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Comparison Explainer{% endblock %}
+
+{% block content %}
+<div class="comparison-explainer-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Comparison Explainer</h1>
+        <p class="lead">Ask questions about how these colleges compare for you.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="card-title">Select Colleges to Compare</h3>
+            <p>Choose up to 3 colleges to compare and ask questions about.</p>
+            
+            <form method="post" action="{{ url_for('comparison_explainer') }}">
+              <div class="row">
+                {% for college in all_colleges %}
+                <div class="col-md-4 mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="college_ids" value="{{ college.id }}" id="college{{ college.id }}" 
+                           {% if college.id in selected_ids %}checked{% endif %}
+                           {% if selected_ids|length >= 3 and college.id not in selected_ids %}disabled{% endif %}>
+                    <label class="form-check-label" for="college{{ college.id }}">
+                      {{ college.name }}
+                      <span class="badge {{ college.category }}">{{ college.category|title }}</span>
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              
+              <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary">Select Colleges</button>
+                <a href="{{ url_for('colleges') }}" class="btn btn-outline-secondary">Back to Recommendations</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if colleges %}
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="card-title">Ask a Question</h3>
+              <a href="{{ url_for('college_comparison') }}" class="btn btn-outline-primary">View Detailed Comparison</a>
+            </div>
+            
+            <form method="post" action="{{ url_for('comparison_explainer') }}">
+              {% for college_id in selected_ids %}
+              <input type="hidden" name="college_ids" value="{{ college_id }}">
+              {% endfor %}
+              
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" name="query" placeholder="Ask a question about these colleges..." value="{{ query }}" required>
+                <button class="btn btn-primary" type="submit">Ask</button>
+              </div>
+            </form>
+            
+            <div class="suggested-questions mt-3">
+              <p><strong>Suggested questions:</strong></p>
+              <div class="d-flex flex-wrap">
+                {% for question in suggested_questions %}
+                <form method="post" action="{{ url_for('comparison_explainer') }}">
+                  {% for college_id in selected_ids %}
+                  <input type="hidden" name="college_ids" value="{{ college_id }}">
+                  {% endfor %}
+                  <input type="hidden" name="query" value="{{ question }}">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary me-2 mb-2">{{ question }}</button>
+                </form>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if explanation %}
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Explanation</h3>
+            <p class="text-muted mb-0">Question: {{ query }}</p>
+          </div>
+          <div class="card-body">
+            <div class="explanation-content">
+              {{ explanation|safe|replace('\n', '<br>')|replace('  ', '&nbsp;&nbsp;') }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Colleges Being Compared</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              {% for college in colleges %}
+              <div class="col-md-4 mb-3">
+                <div class="college-card">
+                  <h4>{{ college.name }}</h4>
+                  <p><strong>Location:</strong> {{ college.location }}</p>
+                  <p><strong>Setting:</strong> {{ college.setting|title }}</p>
+                  <p><strong>Admission Rate:</strong> {{ college.admission_rate }}%</p>
+                  <p><strong>Average Net Price:</strong> ${{ "{:,}".format(college.avg_net_price) }}</p>
+                  
+                  <div class="trust-score-card mt-3">
+                    <div class="d-flex align-items-center">
+                      <div class="trust-score-badge {{ 'high-score' if college.trust_score >= 80 else 'medium-score' if college.trust_score >= 60 else 'low-score' }}">
+                        {{ college.trust_score }}
+                      </div>
+                      <div class="ms-3">
+                        <div class="category-badge {{ college.category }}">
+                          {{ college.category|title }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-3">
+                    <a href="{{ url_for('decision_explainer', college_id=college.id) }}" class="btn btn-sm btn-outline-primary">Ask About This College</a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle checkbox limits
+    const checkboxes = document.querySelectorAll('input[name="college_ids"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const checked = document.querySelectorAll('input[name="college_ids"]:checked');
+        
+        if (checked.length >= 3) {
+          checkboxes.forEach(cb => {
+            if (!cb.checked) {
+              cb.disabled = true;
+            }
+          });
+        } else {
+          checkboxes.forEach(cb => {
+            cb.disabled = false;
+          });
+        }
+      });
+    });
+    
+    // Auto-focus the query input if colleges are selected
+    const queryInput = document.querySelector('input[name="query"]');
+    if (queryInput) {
+      queryInput.focus();
+    }
+  });
+</script>
+
+<style>
+  .explanation-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  
+  .trust-score-badge {
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .high-score {
+    background-color: #28a745;
+  }
+  
+  .medium-score {
+    background-color: #007bff;
+  }
+  
+  .low-score {
+    background-color: #dc3545;
+  }
+  
+  .category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: bold;
+  }
+  
+  .safety {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .target {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  
+  .reach {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .unknown {
+    background-color: #f8f9fa;
+    color: #6c757d;
+  }
+  
+  .college-card {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    height: 100%;
+  }
+  
+  .trust-score-card {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+  }
+</style>
+{% endblock %}

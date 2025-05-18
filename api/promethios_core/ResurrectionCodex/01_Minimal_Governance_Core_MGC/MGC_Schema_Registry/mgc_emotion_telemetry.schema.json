@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Emotion Telemetry Schema",
+  "description": "Schema for emotion telemetry data in the Promethios system",
+  "type": "object",
+  "required": ["timestamp", "user_id", "emotion_data"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the emotion data was recorded"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Unique identifier for the user"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique identifier for the session"
+    },
+    "emotion_data": {
+      "type": "object",
+      "required": ["primary_emotion", "confidence"],
+      "properties": {
+        "primary_emotion": {
+          "type": "string",
+          "enum": ["joy", "sadness", "anger", "fear", "disgust", "surprise", "neutral", "anxiety", "confusion", "uncertainty"],
+          "description": "Primary detected emotion"
+        },
+        "secondary_emotion": {
+          "type": "string",
+          "description": "Secondary detected emotion"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence score for the primary emotion detection"
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Intensity of the primary emotion"
+        },
+        "raw_scores": {
+          "type": "object",
+          "description": "Raw scores for all emotion categories",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "string",
+      "description": "Source of the emotion data (e.g., 'text', 'voice', 'facial')"
+    },
+    "context": {
+      "type": "object",
+      "description": "Contextual information about the emotion data",
+      "properties": {
+        "activity": {
+          "type": "string",
+          "description": "Activity the user was engaged in"
+        },
+        "location": {
+          "type": "string",
+          "description": "Location where the emotion was detected"
+        },
+        "preceding_events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Events preceding the emotion detection"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,338 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Emotion Dashboard{% endblock %}
+
+{% block content %}
+<div class="emotion-dashboard-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Emotion Dashboard</h1>
+        <p class="lead">Visualize your emotional state over time based on your journal entries.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="card-title">Emotional State Summary</h3>
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" data-days="30">30 Days</button>
+                <button type="button" class="btn btn-outline-primary" data-days="90">90 Days</button>
+                <button type="button" class="btn btn-outline-primary" data-days="180">6 Months</button>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-8">
+                <p class="emotion-summary">{{ summary.summary }}</p>
+                
+                <div class="row mt-4">
+                  <div class="col-md-4">
+                    <div class="emotion-stat-card">
+                      <h4>Sentiment</h4>
+                      <div class="emotion-score {{ 'high-score' if summary.average_sentiment >= 70 else 'medium-score' if summary.average_sentiment >= 40 else 'low-score' }}">
+                        {{ "%.1f"|format(summary.average_sentiment) }}
+                      </div>
+                      <div class="trend-indicator">
+                        {% if summary.sentiment_trend > 0.2 %}
+                          <i class="fas fa-arrow-up text-success"></i> Improving
+                        {% elif summary.sentiment_trend < -0.2 %}
+                          <i class="fas fa-arrow-down text-danger"></i> Declining
+                        {% else %}
+                          <i class="fas fa-arrows-alt-h text-secondary"></i> Stable
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="emotion-stat-card">
+                      <h4>Uncertainty</h4>
+                      <div class="emotion-score {{ 'low-score' if summary.average_uncertainty >= 70 else 'medium-score' if summary.average_uncertainty >= 40 else 'high-score' }}">
+                        {{ "%.1f"|format(summary.average_uncertainty) }}
+                      </div>
+                      <div class="trend-indicator">
+                        {% if summary.uncertainty_trend > 0.2 %}
+                          <i class="fas fa-arrow-up text-danger"></i> Increasing
+                        {% elif summary.uncertainty_trend < -0.2 %}
+                          <i class="fas fa-arrow-down text-success"></i> Decreasing
+                        {% else %}
+                          <i class="fas fa-arrows-alt-h text-secondary"></i> Stable
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="emotion-stat-card">
+                      <h4>Agitation</h4>
+                      <div class="emotion-score {{ 'low-score' if summary.average_agitation >= 70 else 'medium-score' if summary.average_agitation >= 40 else 'high-score' }}">
+                        {{ "%.1f"|format(summary.average_agitation) }}
+                      </div>
+                      <div class="trend-indicator">
+                        {% if summary.agitation_trend > 0.2 %}
+                          <i class="fas fa-arrow-up text-danger"></i> Increasing
+                        {% elif summary.agitation_trend < -0.2 %}
+                          <i class="fas fa-arrow-down text-success"></i> Decreasing
+                        {% else %}
+                          <i class="fas fa-arrows-alt-h text-secondary"></i> Stable
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div id="radar-chart"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Emotional State Timeline</h3>
+          </div>
+          <div class="card-body">
+            <div id="line-chart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Emotion Heatmap</h3>
+          </div>
+          <div class="card-body">
+            <div id="heatmap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Journal Entries</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Title</th>
+                    <th>Sentiment</th>
+                    <th>Uncertainty</th>
+                    <th>Agitation</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="journal-entries-table">
+                  <!-- Journal entries will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="text-center mt-3">
+              <a href="{{ url_for('journal') }}" class="btn btn-primary">View All Journal Entries</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load charts
+    const radarChart = JSON.parse('{{ radar_chart | safe }}');
+    const lineChart = JSON.parse('{{ line_chart | safe }}');
+    const heatmap = JSON.parse('{{ heatmap | safe }}');
+    
+    // Render charts
+    Plotly.newPlot('radar-chart', radarChart.data, radarChart.layout);
+    Plotly.newPlot('line-chart', lineChart.data, lineChart.layout);
+    Plotly.newPlot('heatmap', heatmap.data, heatmap.layout);
+    
+    // Load journal entries
+    loadJournalEntries(30);
+    
+    // Time range buttons
+    const timeButtons = document.querySelectorAll('.btn-group button');
+    timeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Update active button
+        timeButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Get days
+        const days = parseInt(this.getAttribute('data-days'));
+        
+        // Reload data
+        loadEmotionData(days);
+      });
+    });
+  });
+  
+  function loadEmotionData(days) {
+    fetch(`/api/emotion-data?days=${days}`)
+      .then(response => response.json())
+      .then(data => {
+        // Update summary
+        updateEmotionSummary(data);
+        
+        // Update journal entries table
+        loadJournalEntries(days);
+        
+        // Reload charts
+        // Note: In a real implementation, we would update the charts with the new data
+        // For simplicity, we're just reloading the page
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error('Error loading emotion data:', error);
+      });
+  }
+  
+  function updateEmotionSummary(data) {
+    // This would update the summary text and stats without reloading
+    // For simplicity, we're just reloading the page
+  }
+  
+  function loadJournalEntries(days) {
+    fetch(`/api/emotion-data?days=${days}`)
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('journal-entries-table');
+        tableBody.innerHTML = '';
+        
+        if (data.timeline && data.timeline.length > 0) {
+          // Sort by date descending
+          const sortedEntries = data.timeline.sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+          });
+          
+          // Take only the first 5 entries
+          const recentEntries = sortedEntries.slice(0, 5);
+          
+          // Add rows to table
+          recentEntries.forEach(entry => {
+            const row = document.createElement('tr');
+            
+            // Format date
+            const date = new Date(entry.timestamp);
+            const formattedDate = date.toLocaleDateString();
+            
+            row.innerHTML = `
+              <td>${formattedDate}</td>
+              <td>${entry.title}</td>
+              <td>
+                <div class="progress">
+                  <div class="progress-bar ${entry.sentiment >= 70 ? 'bg-success' : entry.sentiment >= 40 ? 'bg-primary' : 'bg-danger'}" 
+                       role="progressbar" 
+                       style="width: ${entry.sentiment}%;" 
+                       aria-valuenow="${entry.sentiment}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                    ${entry.sentiment}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="progress">
+                  <div class="progress-bar ${entry.uncertainty <= 30 ? 'bg-success' : entry.uncertainty <= 60 ? 'bg-primary' : 'bg-danger'}" 
+                       role="progressbar" 
+                       style="width: ${entry.uncertainty}%;" 
+                       aria-valuenow="${entry.uncertainty}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                    ${entry.uncertainty}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="progress">
+                  <div class="progress-bar ${entry.agitation <= 30 ? 'bg-success' : entry.agitation <= 60 ? 'bg-primary' : 'bg-danger'}" 
+                       role="progressbar" 
+                       style="width: ${entry.agitation}%;" 
+                       aria-valuenow="${entry.agitation}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                    ${entry.agitation}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <a href="/journal/${entry.id}" class="btn btn-sm btn-outline-primary">View</a>
+              </td>
+            `;
+            
+            tableBody.appendChild(row);
+          });
+        } else {
+          // No entries
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td colspan="6" class="text-center">No journal entries found. <a href="/journal/new">Create one now</a>.</td>
+          `;
+          tableBody.appendChild(row);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading journal entries:', error);
+      });
+  }
+</script>
+
+<style>
+  .emotion-stat-card {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    height: 100%;
+  }
+  
+  .emotion-score {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .high-score {
+    color: #28a745;
+  }
+  
+  .medium-score {
+    color: #007bff;
+  }
+  
+  .low-score {
+    color: #dc3545;
+  }
+  
+  .trend-indicator {
+    font-size: 0.9rem;
+  }
+  
+  .emotion-summary {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}

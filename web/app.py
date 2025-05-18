@@ -1,7 +1,7 @@
 """
-API integration for the web application routes.
+Integration of the emotion visualization dashboard with the main application.
 
-This module updates the app.py routes to use the API client for data retrieval and processing.
+This module updates the app.py file to include the emotion visualization routes.
 """
 
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
@@ -17,6 +17,10 @@ from api_client import (
     get_emotional_state_history,
     get_trust_score_explanation
 )
+from emotion_visualization import EmotionVisualization, register_emotion_visualization_routes
+import plotly
+import plotly.graph_objects as go
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -30,6 +34,9 @@ init_db(app)
 
 # Register blueprints
 app.register_blueprint(auth, url_prefix='/auth')
+
+# Register emotion visualization routes
+register_emotion_visualization_routes(app, db)
 
 # Middleware to check if user is logged in
 @app.before_request
@@ -98,7 +105,11 @@ def journal():
     # Get emotional state history from API
     emotional_history = get_emotional_state_history(user.id)
     
-    return render_template('journal.html', entries=entries, emotional_history=emotional_history)
+    # Create emotion visualization for journal page
+    visualizer = EmotionVisualization(entries)
+    emotion_summary = visualizer.generate_emotion_summary()
+    
+    return render_template('journal.html', entries=entries, emotional_history=emotional_history, emotion_summary=emotion_summary)
 
 @app.route('/journal/new', methods=['GET', 'POST'])
 def new_journal_entry():
@@ -235,7 +246,14 @@ def report():
         if not report_data['student']['name']:
             report_data['student']['name'] = user.name or user.username
     
-    return render_template('report.html', report=report_data)
+    # Get journal entries for emotion visualization
+    entries = JournalEntry.query.filter_by(user_id=user.id).order_by(JournalEntry.created_at.desc()).all()
+    
+    # Create emotion visualization for report page
+    visualizer = EmotionVisualization(entries)
+    emotion_summary = visualizer.generate_emotion_summary()
+    
+    return render_template('report.html', report=report_data, emotion_summary=emotion_summary)
 
 @app.route('/settings', methods=['GET'])
 def settings():
@@ -253,12 +271,12 @@ def settings():
 @app.route('/api-proxy/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def api_proxy(endpoint):
     if 'user' not in session:
-        return jsonify({'error': True, 'message': 'Authentication required'}), 401
+        return jsonify({'error': 'Not authenticated'}), 401
     
     user = User.query.filter_by(username=session['user']).first()
     if not user:
         session.clear()
-        return jsonify({'error': True, 'message': 'User not found'}), 401
+        return jsonify({'error': 'User not found'}), 401
     
     from api_client import APIClient
     client = APIClient()

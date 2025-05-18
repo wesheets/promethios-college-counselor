@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Operator Override Schema",
+  "description": "Schema for operator override entries in the Promethios system",
+  "type": "object",
+  "required": ["timestamp", "operator_id", "override_id", "entity_type", "entity_id", "action", "justification"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the override was recorded"
+    },
+    "operator_id": {
+      "type": "string",
+      "description": "Unique identifier for the operator performing the override"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique identifier for the session"
+    },
+    "override_id": {
+      "type": "string",
+      "description": "Unique identifier for this override entry"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": ["college", "recommendation", "student", "report"],
+      "description": "Type of entity being overridden"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the entity being overridden"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["include", "exclude", "modify", "prioritize", "deprioritize"],
+      "description": "Action being taken in the override"
+    },
+    "original_state": {
+      "type": "object",
+      "description": "Original state of the entity before override",
+      "additionalProperties": true
+    },
+    "modified_state": {
+      "type": "object",
+      "description": "Modified state of the entity after override",
+      "additionalProperties": true
+    },
+    "justification": {
+      "type": "string",
+      "description": "Textual justification for the override"
+    },
+    "trust_impact": {
+      "type": "object",
+      "description": "Impact on trust scores",
+      "properties": {
+        "original_score": {
+          "type": "number",
+          "description": "Original trust score before override"
+        },
+        "modified_score": {
+          "type": "number",
+          "description": "Modified trust score after override"
+        },
+        "impact_factors": {
+          "type": "array",
+          "description": "Factors affected by the override",
+          "items": {
+            "type": "object",
+            "properties": {
+              "factor_name": {
+                "type": "string",
+                "description": "Name of the factor"
+              },
+              "original_value": {
+                "type": "number",
+                "description": "Original value of the factor"
+              },
+              "modified_value": {
+                "type": "number",
+                "description": "Modified value of the factor"
+              }
+            }
+          }
+        }
+      }
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected"],
+      "description": "Status of the override approval"
+    },
+    "approver_id": {
+      "type": "string",
+      "description": "ID of the approver if applicable"
+    },
+    "approval_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the override was approved or rejected"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
