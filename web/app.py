@@ -7,6 +7,7 @@ This module updates the app.py file to include the new routes and features.
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 import os
 import re
+from datetime import datetime
 from models import db, init_db, User, UserProfile, JournalEntry
 from auth import auth
 from api_client import (
@@ -88,7 +89,9 @@ def internal_server_error(e):
 # Health check endpoint for Render
 @app.route('/health')
 def health_check():
-    return jsonify({"status": "healthy"}), 200
+    # Log health check request for debugging
+    print(f"Health check requested from {request.remote_addr}")
+    return jsonify({"status": "healthy", "timestamp": datetime.utcnow().isoformat()}), 200
 
 # Routes
 @app.route('/')
@@ -410,4 +413,7 @@ def api_proxy(endpoint):
     return jsonify(result)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    # Use PORT environment variable if available (for Render compatibility)
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting Flask app on port {port}")
+    app.run(debug=True, host='0.0.0.0', port=port)
