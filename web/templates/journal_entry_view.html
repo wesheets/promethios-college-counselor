@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Journal Entry View{% endblock %}
+
+{% block content %}
+<div class="journal-entry-view-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">Journal Entry</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <p class="text-muted">{{ entry.created_at.strftime('%B %d, %Y at %I:%M %p') if entry.created_at }}</p>
+          <a href="{{ url_for('journal') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Journal
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>{{ entry.title or 'Untitled Entry' }}</h3>
+          </div>
+          <div class="card-body">
+            <div class="journal-content">
+              {{ entry.content | nl2br }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Emotional Analysis</h4>
+          </div>
+          <div class="card-body">
+            <div class="text-center mb-3">
+              <div class="emotion-indicator">
+                {% if entry.sentiment_score >= 70 %}
+                <i class="fas fa-smile emotion-icon" style="color: #28a745;"></i>
+                {% elif entry.sentiment_score >= 40 %}
+                <i class="fas fa-meh emotion-icon" style="color: #ffc107;"></i>
+                {% else %}
+                <i class="fas fa-frown emotion-icon" style="color: #dc3545;"></i>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label>Sentiment:</label>
+              <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ entry.sentiment_score }}%;" aria-valuenow="{{ entry.sentiment_score }}" aria-valuemin="0" aria-valuemax="100">{{ entry.sentiment_score }}%</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label>Certainty:</label>
+              <div class="progress">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ 100 - entry.uncertainty_score }}%;" aria-valuenow="{{ 100 - entry.uncertainty_score }}" aria-valuemin="0" aria-valuemax="100">{{ 100 - entry.uncertainty_score }}%</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label>Calmness:</label>
+              <div class="progress">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ 100 - entry.agitation_score }}%;" aria-valuenow="{{ 100 - entry.agitation_score }}" aria-valuemin="0" aria-valuemax="100">{{ 100 - entry.agitation_score }}%</div>
+              </div>
+            </div>
+            
+            <div class="mt-3">
+              <h5>Analysis</h5>
+              <p>{{ entry.emotion_summary }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h4>Recommendations</h4>
+          </div>
+          <div class="card-body">
+            <p>Based on your emotional state in this entry, consider:</p>
+            <ul>
+              {% if entry.sentiment_score < 50 %}
+              <li>Taking a break from college research for a day or two</li>
+              <li>Talking to a trusted mentor about your concerns</li>
+              <li>Focusing on schools that match your core values</li>
+              {% elif entry.uncertainty_score > 50 %}
+              <li>Making a pros and cons list for your top choices</li>
+              <li>Researching specific programs at your preferred schools</li>
+              <li>Connecting with current students at those schools</li>
+              {% elif entry.agitation_score > 50 %}
+              <li>Practicing relaxation techniques before decision-making</li>
+              <li>Breaking down the application process into smaller steps</li>
+              <li>Setting realistic deadlines for yourself</li>
+              {% else %}
+              <li>Continuing your current approach - you're on the right track</li>
+              <li>Exploring additional schools that match your profile</li>
+              <li>Starting to prepare application materials</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Add any specific scripts for the journal entry view here
+</script>
+{% endblock %}

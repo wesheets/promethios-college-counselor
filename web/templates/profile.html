@@ -8,156 +8,112 @@
     <div class="row">
       <div class="col-md-12">
         <h1 class="page-title">Student Profile</h1>
-        <p class="lead">Tell us about yourself so we can provide personalized college recommendations.</p>
+        <p class="lead">Update your academic information and preferences to get personalized college recommendations.</p>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-body">
-        <form id="profileForm" class="needs-validation" novalidate>
-          <div class="row mb-4">
-            <div class="col-md-12">
-              <h3>Personal Information</h3>
-              <hr>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-                <div class="invalid-feedback">
-                  Please provide your name.
-                </div>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>Account Information</h4>
+          </div>
+          <div class="card-body">
+            <div class="text-center mb-4">
+              <div class="avatar-circle">
+                <span class="avatar-initials">{{ user.name[0] if user.name else user.username[0] }}</span>
               </div>
+              <h5 class="mt-3">{{ user.name or user.username }}</h5>
+              <p class="text-muted">{{ user.email }}</p>
             </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-                <div class="invalid-feedback">
-                  Please provide a valid email address.
-                </div>
-              </div>
+            
+            <div class="list-group">
+              <a href="{{ url_for('auth.change_password') }}" class="list-group-item list-group-item-action">
+                <i class="fas fa-key me-2"></i> Change Password
+              </a>
+              <a href="{{ url_for('settings') }}" class="list-group-item list-group-item-action">
+                <i class="fas fa-cog me-2"></i> Account Settings
+              </a>
             </div>
           </div>
-
-          <div class="row mb-4">
-            <div class="col-md-12">
-              <h3>Academic Information</h3>
-              <hr>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="gpa" class="form-label">Current GPA</label>
-                <input type="number" class="form-control" id="gpa" name="gpa" min="0" max="4.0" step="0.1" required>
-                <div class="invalid-feedback">
-                  Please provide your GPA (0.0 - 4.0).
+        </div>
+      </div>
+      
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h4>Academic Profile</h4>
+          </div>
+          <div class="card-body">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            
+            <form method="post" action="{{ url_for('profile') }}" class="needs-validation" novalidate>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="gpa" class="form-label">GPA</label>
+                  <input type="number" class="form-control" id="gpa" name="gpa" min="0" max="4.0" step="0.01" value="{{ profile.gpa or '' }}" placeholder="e.g., 3.8">
+                  <div class="form-text">Enter your unweighted GPA on a 4.0 scale.</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="graduation_year" class="form-label">Graduation Year</label>
+                  <input type="text" class="form-control" id="graduation_year" name="graduation_year" value="{{ profile.graduation_year or '' }}" placeholder="e.g., 2026">
                 </div>
               </div>
-            </div>
-            <div class="col-md-6">
+              
               <div class="mb-3">
-                <label for="graduation-year" class="form-label">Expected Graduation Year</label>
-                <select class="form-select" id="graduation-year" name="graduation_year" required>
-                  <option value="" selected disabled>Select year</option>
-                  <option value="2025">2025</option>
-                  <option value="2026">2026</option>
-                  <option value="2027">2027</option>
-                  <option value="2028">2028</option>
-                </select>
-                <div class="invalid-feedback">
-                  Please select your expected graduation year.
+                <label for="intended_majors" class="form-label">Intended Majors</label>
+                <input type="text" class="form-control" id="intended_majors" name="intended_majors" value="{{ profile.intended_majors or '' }}" placeholder="e.g., Computer Science, Mathematics">
+                <div class="form-text">Separate multiple majors with commas.</div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="location_preference" class="form-label">Location Preference</label>
+                  <input type="text" class="form-control" id="location_preference" name="location_preference" value="{{ profile.location_preference or '' }}" placeholder="e.g., California, Northeast">
+                </div>
+                <div class="col-md-6">
+                  <label for="budget" class="form-label">Annual Budget</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" id="budget" name="budget" min="0" step="1000" value="{{ profile.budget or '' }}" placeholder="e.g., 50000">
+                  </div>
+                  <div class="form-text">Estimated annual budget for college expenses.</div>
                 </div>
               </div>
-            </div>
-            <div class="col-md-12">
-              <div class="mb-3">
-                <label for="intended-majors" class="form-label">Intended Majors</label>
-                <select class="form-select" id="intended-majors" name="intended_majors" multiple required>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Business">Business</option>
-                  <option value="Biology">Biology</option>
-                  <option value="Psychology">Psychology</option>
-                  <option value="English">English</option>
-                  <option value="History">History</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Economics">Economics</option>
-                  <option value="Political Science">Political Science</option>
-                  <option value="Sociology">Sociology</option>
-                  <option value="Art">Art</option>
-                  <option value="Music">Music</option>
-                </select>
-                <div class="form-text">Hold Ctrl (or Cmd) to select multiple majors.</div>
-                <div class="invalid-feedback">
-                  Please select at least one intended major.
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="size_preference" class="form-label">College Size Preference</label>
+                  <select class="form-select" id="size_preference" name="size_preference">
+                    <option value="" {% if not profile.size_preference %}selected{% endif %}>No Preference</option>
+                    <option value="small" {% if profile.size_preference == 'small' %}selected{% endif %}>Small (< 5,000 students)</option>
+                    <option value="medium" {% if profile.size_preference == 'medium' %}selected{% endif %}>Medium (5,000 - 15,000 students)</option>
+                    <option value="large" {% if profile.size_preference == 'large' %}selected{% endif %}>Large (> 15,000 students)</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="setting_preference" class="form-label">Campus Setting Preference</label>
+                  <select class="form-select" id="setting_preference" name="setting_preference">
+                    <option value="" {% if not profile.setting_preference %}selected{% endif %}>No Preference</option>
+                    <option value="urban" {% if profile.setting_preference == 'urban' %}selected{% endif %}>Urban</option>
+                    <option value="suburban" {% if profile.setting_preference == 'suburban' %}selected{% endif %}>Suburban</option>
+                    <option value="rural" {% if profile.setting_preference == 'rural' %}selected{% endif %}>Rural</option>
+                  </select>
                 </div>
               </div>
-            </div>
+              
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Save Profile</button>
+              </div>
+            </form>
           </div>
-
-          <div class="row mb-4">
-            <div class="col-md-12">
-              <h3>College Preferences</h3>
-              <hr>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="location-preference" class="form-label">Location Preference</label>
-                <select class="form-select" id="location-preference" name="location_preference">
-                  <option value="" selected disabled>Select location</option>
-                  <option value="northeast">Northeast</option>
-                  <option value="midwest">Midwest</option>
-                  <option value="south">South</option>
-                  <option value="west">West</option>
-                  <option value="CA">California</option>
-                  <option value="NY">New York</option>
-                  <option value="TX">Texas</option>
-                  <option value="FL">Florida</option>
-                  <option value="MA">Massachusetts</option>
-                  <option value="IL">Illinois</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="size-preference" class="form-label">School Size Preference</label>
-                <select class="form-select" id="size-preference" name="size_preference">
-                  <option value="" selected disabled>Select size</option>
-                  <option value="small">Small (< 5,000 students)</option>
-                  <option value="medium">Medium (5,000 - 15,000 students)</option>
-                  <option value="large">Large (> 15,000 students)</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="setting-preference" class="form-label">Campus Setting Preference</label>
-                <select class="form-select" id="setting-preference" name="setting_preference">
-                  <option value="" selected disabled>Select setting</option>
-                  <option value="urban">Urban</option>
-                  <option value="suburban">Suburban</option>
-                  <option value="rural">Rural</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="budget" class="form-label">Annual Budget (USD)</label>
-                <input type="number" class="form-control" id="budget" name="budget" min="0" step="1000">
-                <div class="form-text">Maximum amount you can spend per year on college.</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-12">
-              <button type="submit" class="btn btn-primary btn-lg">Save Profile</button>
-              <button type="button" class="btn btn-outline-secondary btn-lg ms-2">Cancel</button>
-            </div>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -166,60 +122,28 @@
 
 {% block scripts %}
 <script>
-  // Form validation
-  (function() {
-    'use strict';
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('profileForm');
-      
-      form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-        } else {
-          event.preventDefault();
-          saveProfile();
-        }
-        
-        form.classList.add('was-validated');
-      }, false);
-    });
-    
-    function saveProfile() {
-      const formData = new FormData(document.getElementById('profileForm'));
-      const data = {};
-      
-      for (let [key, value] of formData.entries()) {
-        if (key === 'intended_majors') {
-          if (!data[key]) {
-            data[key] = [];
-          }
-          data[key].push(value);
-        } else {
-          data[key] = value;
-        }
-      }
-      
-      // Convert budget to number
-      if (data.budget) {
-        data.budget = parseFloat(data.budget);
-      }
-      
-      // Convert GPA to number
-      if (data.gpa) {
-        data.gpa = parseFloat(data.gpa);
-      }
-      
-      // API call would go here
-      console.log('Saving profile:', data);
-      
-      // For demo purposes, show success message
-      alert('Profile saved successfully!');
-      
-      // Redirect to journal page
-      window.location.href = '/journal';
-    }
-  })();
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add any profile-specific JavaScript here
+  });
 </script>
+
+<style>
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+  }
+  
+  .avatar-initials {
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+</style>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - Journal Entry{% endblock %}
+
+{% block content %}
+<div class="journal-entry-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-title">New Journal Entry</h1>
+        <p class="lead">Share your thoughts and feelings about your college journey.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            
+            <form method="post" action="{{ url_for('new_journal_entry') }}" class="needs-validation" novalidate>
+              <div class="mb-3">
+                <label for="title" class="form-label">Title (Optional)</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Give your entry a title">
+              </div>
+              <div class="mb-3">
+                <label for="content" class="form-label">Journal Entry</label>
+                <textarea class="form-control" id="content" name="content" rows="10" required placeholder="Write about your college search process, concerns, hopes, or questions..."></textarea>
+                <div class="invalid-feedback">
+                  Please write something in your journal entry.
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <a href="{{ url_for('journal') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Entry</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">About Journaling</h5>
+          </div>
+          <div class="card-body">
+            <p>Your journal entries help our system understand your emotional state and provide better college recommendations. We analyze your entries to detect:</p>
+            <ul>
+              <li><strong>Sentiment:</strong> How positive or negative your feelings are</li>
+              <li><strong>Certainty:</strong> How confident you feel about your decisions</li>
+              <li><strong>Calmness:</strong> How stressed or relaxed you are about the process</li>
+            </ul>
+            <p>This emotional awareness helps us tailor our recommendations to your current state of mind and provide guidance that's appropriate for where you are in your journey.</p>
+            <p class="mb-0 text-muted"><small>Your journal entries are private and only used to improve your recommendations.</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends "layout.html" %}
+
+{% block title %}College Counselor - College Details{% endblock %}
+
+{% block content %}
+<div class="college-details-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="page-title">{{ college.name }}</h1>
+          <a href="{{ url_for('colleges') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Recommendations
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>College Overview</h3>
+          </div>
+          <div class="card-body">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h5>Location</h5>
+                <p>{{ college.location }}</p>
+                
+                <h5>Type</h5>
+                <p>{{ college.type }}</p>
+                
+                <h5>Size</h5>
+                <p>{{ college.size }} students</p>
+              </div>
+              <div class="col-md-6">
+                <h5>Acceptance Rate</h5>
+                <p>{{ college.acceptance_rate }}%</p>
+                
+                <h5>Average Cost</h5>
+                <p>${{ college.average_cost }} per year</p>
+                
+                <h5>Setting</h5>
+                <p>{{ college.setting }}</p>
+              </div>
+            </div>
+            
+            <h5>Description</h5>
+            <p>{{ college.description }}</p>
+            
+            <h5>Popular Majors</h5>
+            <ul>
+              {% for major in college.popular_majors %}
+                <li>{{ major }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>Academic Profile</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h5>Average GPA</h5>
+                <p>{{ college.average_gpa }}</p>
+                
+                <h5>Average SAT</h5>
+                <p>{{ college.average_sat }}</p>
+              </div>
+              <div class="col-md-6">
+                <h5>Average ACT</h5>
+                <p>{{ college.average_act }}</p>
+                
+                <h5>Student-Faculty Ratio</h5>
+                <p>{{ college.student_faculty_ratio }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>Financial Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h5>Tuition</h5>
+                <p>${{ college.tuition }} per year</p>
+                
+                <h5>Room & Board</h5>
+                <p>${{ college.room_and_board }} per year</p>
+              </div>
+              <div class="col-md-6">
+                <h5>Financial Aid</h5>
+                <p>{{ college.financial_aid_percent }}% of students receive aid</p>
+                
+                <h5>Average Aid Package</h5>
+                <p>${{ college.average_aid_package }} per year</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>Trust Score: {{ trust_score.overall_score }}</h3>
+          </div>
+          <div class="card-body">
+            <div class="text-center mb-4">
+              <div class="trust-score-circle {{ 'high-score' if trust_score.overall_score >= 80 else 'medium-score' if trust_score.overall_score >= 60 else 'low-score' }}">
+                {{ trust_score.overall_score }}
+              </div>
+            </div>
+            
+            <h5>Trust Score Breakdown</h5>
+            {% for factor in trust_score.factors %}
+              <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                  <span>{{ factor.name }}</span>
+                  <span>{{ factor.score }}</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar {{ 'bg-success' if factor.score >= 80 else 'bg-primary' if factor.score >= 60 else 'bg-danger' }}" role="progressbar" style="width: {{ factor.score }}%;" aria-valuenow="{{ factor.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">{{ factor.description }}</small>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>Match Analysis</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <span>Academic Match</span>
+                <span>{{ college.academic_match }}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ college.academic_match }}%;" aria-valuenow="{{ college.academic_match }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <span>Financial Match</span>
+                <span>{{ college.financial_match }}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ college.financial_match }}%;" aria-valuenow="{{ college.financial_match }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <span>Social Match</span>
+                <span>{{ college.social_match }}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ college.social_match }}%;" aria-valuenow="{{ college.social_match }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <span>Overall Match</span>
+                <span>{{ college.overall_match }}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar {{ 'bg-success' if college.overall_match >= 80 else 'bg-primary' if college.overall_match >= 60 else 'bg-danger' }}" role="progressbar" style="width: {{ college.overall_match }}%;" aria-valuenow="{{ college.overall_match }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3>Actions</h3>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" id="addToFavoritesBtn">
+                <i class="fas fa-heart me-1"></i> Add to Favorites
+              </button>
+              <button class="btn btn-outline-primary" id="compareBtn">
+                <i class="fas fa-balance-scale me-1"></i> Compare
+              </button>
+              <a href="{{ college.website }}" target="_blank" class="btn btn-outline-secondary">
+                <i class="fas fa-external-link-alt me-1"></i> Visit Website
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add to favorites functionality
+    const addToFavoritesBtn = document.getElementById('addToFavoritesBtn');
+    if (addToFavoritesBtn) {
+      addToFavoritesBtn.addEventListener('click', function() {
+        // In a real app, this would call an API to add to favorites
+        window.notificationSystem.success('Added to favorites!');
+        addToFavoritesBtn.innerHTML = '<i class="fas fa-heart me-1"></i> Added to Favorites';
+        addToFavoritesBtn.disabled = true;
+      });
+    }
+    
+    // Compare functionality
+    const compareBtn = document.getElementById('compareBtn');
+    if (compareBtn) {
+      compareBtn.addEventListener('click', function() {
+        // In a real app, this would add to a comparison list
+        window.notificationSystem.info('Added to comparison list. Go to Colleges page to compare.');
+      });
+    }
+  });
+</script>
+{% endblock %}
