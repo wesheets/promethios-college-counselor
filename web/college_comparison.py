@@ -334,8 +334,8 @@ def register_college_comparison_routes(app, db):
         app: Flask application
         db: SQLAlchemy database
     """
-    from models import User, College
-    from api_client import APIClient
+    from models import User
+    from api_client import APIClient, get_college_details
     from trust_visualization import TrustVisualization
     
     @app.route('/college-comparison', methods=['GET', 'POST'])
